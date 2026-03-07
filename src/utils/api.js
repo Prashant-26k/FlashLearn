@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: '',
+    baseURL: 'https://flashlearn-7ayp.onrender.com',
 });
 
 api.interceptors.request.use((config) => {
