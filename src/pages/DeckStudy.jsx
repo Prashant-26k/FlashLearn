@@ -12,6 +12,7 @@ export default function DeckStudy() {
     const [deck, setDeck] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentCard, setCurrentCard] = useState(0);
+    const [flipped, setFlipped] = useState(false);
     const [editingTitle, setEditingTitle] = useState(false);
     const [title, setTitle] = useState('');
 
@@ -32,12 +33,20 @@ export default function DeckStudy() {
 
     const handleKeyDown = useCallback((e) => {
         if (!deck?.cards?.length) return;
+        // Ignore if user is typing in an input or textarea
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
         if (e.key === 'ArrowLeft') {
+            setFlipped(false);
             setCurrentCard(prev => Math.max(0, prev - 1));
         } else if (e.key === 'ArrowRight') {
+            setFlipped(false);
             setCurrentCard(prev => Math.min(deck.cards.length - 1, prev + 1));
+        } else if (e.key === ' ') {
+            e.preventDefault();
+            setFlipped(prev => !prev);
         }
-    }, [deck]);
+    }, [deck, currentCard]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
@@ -140,6 +149,8 @@ export default function DeckStudy() {
                                 key={currentCard}
                                 question={cards[currentCard]?.question}
                                 answer={cards[currentCard]?.answer}
+                                flipped={flipped}
+                                onFlip={setFlipped}
                             />
 
                             {/* Keyboard shortcuts hint */}
@@ -158,7 +169,10 @@ export default function DeckStudy() {
                             <div style={{ display: 'flex', gap: 16, marginTop: 20, alignItems: 'center' }}>
                                 <button
                                     className="btn btn-secondary"
-                                    onClick={() => setCurrentCard(Math.max(0, currentCard - 1))}
+                                    onClick={() => {
+                                        setFlipped(false);
+                                        setCurrentCard(Math.max(0, currentCard - 1));
+                                    }}
                                     disabled={currentCard === 0}
                                 >
                                     ← Prev
@@ -168,7 +182,10 @@ export default function DeckStudy() {
                                 </span>
                                 <button
                                     className="btn btn-secondary"
-                                    onClick={() => setCurrentCard(Math.min(cards.length - 1, currentCard + 1))}
+                                    onClick={() => {
+                                        setFlipped(false);
+                                        setCurrentCard(Math.min(cards.length - 1, currentCard + 1));
+                                    }}
                                     disabled={currentCard === cards.length - 1}
                                 >
                                     Next →
@@ -196,7 +213,10 @@ export default function DeckStudy() {
                         {cards.map((card, i) => (
                             <div
                                 key={i}
-                                onClick={() => setCurrentCard(i)}
+                                onClick={() => {
+                                    setFlipped(false);
+                                    setCurrentCard(i);
+                                }}
                                 style={{
                                     padding: '8px 10px',
                                     borderRadius: 'var(--radius-sm)',

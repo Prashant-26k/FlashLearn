@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlashCard from '../components/FlashCard';
 import { useToast } from '../context/ToastContext';
@@ -18,6 +18,7 @@ export default function CreateDeck() {
     const [topicInput, setTopicInput] = useState(searchParams.get('topic') || '');
     const [cards, setCards] = useState([]);
     const [currentCard, setCurrentCard] = useState(0);
+    const [flipped, setFlipped] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [fileName, setFileName] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
@@ -36,6 +37,27 @@ export default function CreateDeck() {
     const [showAddCard, setShowAddCard] = useState(false);
     const [newQ, setNewQ] = useState('');
     const [newA, setNewA] = useState('');
+
+    const handleKeyDown = useCallback((e) => {
+        if (!cards?.length) return;
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+        if (e.key === 'ArrowLeft') {
+            setFlipped(false);
+            setCurrentCard(prev => Math.max(0, prev - 1));
+        } else if (e.key === 'ArrowRight') {
+            setFlipped(false);
+            setCurrentCard(prev => Math.min(cards.length - 1, prev + 1));
+        } else if (e.key === ' ') {
+            e.preventDefault();
+            setFlipped(prev => !prev);
+        }
+    }, [cards]);
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     // Auto-generate if topic from URL
     useEffect(() => {
@@ -347,6 +369,8 @@ export default function CreateDeck() {
                                 key={currentCard}
                                 question={cards[currentCard]?.question}
                                 answer={cards[currentCard]?.answer}
+                                flipped={flipped}
+                                onFlip={setFlipped}
                                 width={Math.min(480, 520)}
                                 height={280}
                             />
