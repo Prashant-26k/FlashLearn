@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = () => {
-        window.location.href = '/auth/google';
+        window.location.href = 'https://flashlearn-7ayp.onrender.com/auth/google';
     };
 
     const logout = async () => {
