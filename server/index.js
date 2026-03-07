@@ -23,6 +23,9 @@ import exportRoutes from './routes/export.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for secure cookies / HTTPS on Render
+app.set('trust proxy', 1);
+
 // ── Middleware ──
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -38,6 +41,7 @@ passport.use(new GoogleStrategy(
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: '/auth/google/callback',
+        proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
         try {
