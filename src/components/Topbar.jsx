@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export default function Topbar() {
+export default function Topbar({ onMenuToggle }) {
     const { user, logout } = useAuth();
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
@@ -20,15 +20,41 @@ export default function Topbar() {
 
     return (
         <header className="topbar">
-            {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 18 }}>Flash</span>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18 }}>Learn</span>
+            {/* Left: Hamburger (mobile) + Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Hamburger - only visible on mobile via CSS */}
+                <button
+                    className="hamburger-btn"
+                    onClick={onMenuToggle}
+                    aria-label="Toggle navigation"
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '6px',
+                        display: 'none', // shown via CSS on mobile
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '5px',
+                        borderRadius: 'var(--radius-sm)',
+                        transition: 'background 150ms ease',
+                    }}
+                >
+                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
+                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
+                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
+                </button>
+
+                {/* Logo */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 18 }}>Flash</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18 }}>Learn</span>
+                </div>
             </div>
 
             {/* Right side */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }} ref={dropdownRef}>
-                {/* Avatar */}
                 <button
                     onClick={() => setShowDropdown(!showDropdown)}
                     style={{
@@ -54,7 +80,6 @@ export default function Topbar() {
                     )}
                 </button>
 
-                {/* Dropdown */}
                 {showDropdown && (
                     <div className="dropdown">
                         <div style={{ padding: '8px 12px' }}>
@@ -66,7 +91,7 @@ export default function Topbar() {
                             </div>
                         </div>
                         <div className="dropdown-divider" />
-                        <button className="dropdown-item" onClick={() => navigate('/profile')} style={{ paddingLeft: '32px', position: 'relative' }}>
+                        <button className="dropdown-item" onClick={() => { navigate('/profile'); setShowDropdown(false); }} style={{ paddingLeft: '32px', position: 'relative' }}>
                             <span style={{ position: 'absolute', left: '12px', fontSize: '14px' }}>👤</span>
                             My Profile
                         </button>

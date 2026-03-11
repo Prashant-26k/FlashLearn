@@ -143,8 +143,7 @@ export default function Quiz() {
             <div className="page-enter">
                 <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 24 }}>Configure Quiz</h1>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32 }}>
-                    {/* Deck Selection */}
+                <div className="quiz-setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32 }}>                    {/* Deck Selection */}
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                             <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Select Decks</h3>
@@ -320,8 +319,7 @@ export default function Quiz() {
 
                 {/* Answer area */}
                 {settings.mode === 'mc' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        {question?.options?.map((opt, i) => {
+                     <div className="quiz-options-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>                        {question?.options?.map((opt, i) => {
                             let cls = 'quiz-option';
                             if (showResult) {
                                 if (opt === question.answer) cls += ' correct show-correct';
@@ -416,7 +414,7 @@ export default function Quiz() {
             </div>
 
             {/* Stat cards */}
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
+            <div className="score-stats-row" style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
                 {[
                     { label: 'Correct', value: score, color: 'var(--success)', bg: 'rgba(76,175,130,0.1)' },
                     { label: 'Incorrect', value: incorrect, color: 'var(--danger)', bg: 'rgba(224,82,82,0.1)' },

@@ -140,7 +140,7 @@ export default function DeckStudy() {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 32 }}>
+             <div className="deck-study-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 32 }}>
                 {/* Main study area */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     {cards.length > 0 ? (
@@ -198,7 +198,8 @@ export default function DeckStudy() {
                 </div>
 
                 {/* Right sidebar - card list */}
-                <div style={{
+                <div className="deck-study-sidebar"
+                    style={{
                     background: 'var(--bg-surface)',
                     borderRadius: 'var(--radius-lg)',
                     border: '1px solid var(--border-subtle)',
