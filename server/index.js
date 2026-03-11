@@ -60,6 +60,7 @@ passport.use(new GoogleStrategy(
             }
             done(null, user);
         } catch (err) {
+            console.error('Passport Google Strategy Error during authentication:', err);
             done(err, null);
         }
     }
