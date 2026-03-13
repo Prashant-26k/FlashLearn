@@ -93,7 +93,7 @@ export default function Home() {
 
             <main>
                 {/* ── Hero ── */}
-                <section id="features" style={{ position: 'relative', padding: '96px 24px 80px', textAlign: 'center' }}>
+                <section style={{ position: 'relative', padding: '96px 24px 80px', textAlign: 'center' }}>
                     {/* Radial glow */}
                     <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 800px 500px at 50% 0%, rgba(94,106,210,0.13), transparent 70%)', pointerEvents: 'none' }} />
 
