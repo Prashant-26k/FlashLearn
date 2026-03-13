@@ -171,15 +171,16 @@ export default function Home() {
                 <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
                         {[
-                            { icon: '📝', label: 'Text Paste', color: '#5E6AD2', desc: 'Paste lecture notes or articles to instantly extract key concepts and facts.' },
-                            { icon: '📄', label: 'PDF Upload', color: '#E05252', desc: `Upload textbooks or research papers — we'll extract the essentials.` },
-                            { icon: '📘', label: 'Word Docs', color: '#5E6AD2', desc: 'Import structured .docx documents directly into interactive study decks.' },
-                            { icon: '🔍', label: 'Topic Search', color: '#E8A320', desc: 'Enter any subject and let AI generate a comprehensive deck from scratch.' },
-                        ].map(({ icon, label, color, desc }) => (
+                            { icon: '📝', label: 'Text Paste', color: '#5E6AD2', desc: 'Paste lecture notes or articles to instantly extract key concepts and facts.', path: '/create' },
+                            { icon: '📄', label: 'PDF Upload', color: '#E05252', desc: `Upload textbooks or research papers — we'll extract the essentials.`, path: '/create' },
+                            { icon: '📘', label: 'Word Docs', color: '#5E6AD2', desc: 'Import structured .docx documents directly into interactive study decks.', path: '/create' },
+                            { icon: '🔍', label: 'Topic Search', color: '#E8A320', desc: 'Enter any subject and let AI generate a comprehensive deck from scratch.', path: '/create' },
+                        ].map(({ icon, label, color, desc, path }) => (
                             <div key={label}
-                                style={{ padding: 24, borderRadius: 16, border: '1px solid #2A2A2E', background: 'rgba(30,30,33,0.3)', transition: 'all 200ms', cursor: 'default', borderTop: `3px solid ${color}` }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.7)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = '#3D3D44'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.3)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#2A2A2E'; }}
+                                onClick={() => handleAction(path)}
+                                style={{ padding: 24, borderRadius: 16, border: '1px solid #2A2A2E', background: 'rgba(30,30,33,0.3)', transition: 'all 200ms', cursor: 'pointer', borderTop: `3px solid ${color}` }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.7)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.3)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                             >
                                 <div style={{ fontSize: 28, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, background: 'rgba(94,106,210,0.08)', borderRadius: 12, border: '1px solid rgba(94,106,210,0.15)' }}>
                                     {icon}
