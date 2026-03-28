@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlashCard from '../components/FlashCard';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { invalidateCache } from '../utils/cache';
 
 const TABS = ['Paste Text', 'Upload PDF', 'Upload Word', 'Topic Search'];
 
@@ -67,34 +68,42 @@ export default function CreateDeck() {
         }
     }, []);
 
+    const titleRef = useRef({ deckName, topicInput });
+    useEffect(() => {
+        titleRef.current = { deckName, topicInput };
+    }, [deckName, topicInput]);
+
     // Autosave effect (debounced 1.5 seconds)
     useEffect(() => {
         if (!autoSaveEnabled || !cards.length || generating) return;
 
         const saveTimer = setTimeout(async () => {
-            const currentTitle = deckName.trim() || topicInput.trim() || 'Untitled Deck';
+            const currentTitle = titleRef.current.deckName.trim() || titleRef.current.topicInput.trim() || 'Untitled Deck';
             try {
                 if (deckId) {
                     await api.put(`/api/decks/${deckId}`, {
                         title: currentTitle,
-                        topic: topicInput || 'General',
+                        topic: titleRef.current.topicInput || 'General',
                         cards,
                     });
                 } else {
                     const res = await api.post('/api/decks', {
                         title: currentTitle,
-                        topic: topicInput || 'General',
+                        topic: titleRef.current.topicInput || 'General',
                         cards,
                     });
                     setDeckId(res.data._id);
                 }
+                invalidateCache('decks');
+                invalidateCache('dashboard_decks');
+                if (deckId) invalidateCache(`deck_${deckId}`);
             } catch {
                 // Silent catch for auto-saving
             }
         }, 1500);
 
         return () => clearTimeout(saveTimer);
-    }, [cards, deckName, topicInput, autoSaveEnabled, generating, deckId]);
+    }, [cards, autoSaveEnabled, generating, deckId]);
 
     const handleGenerateFromText = async () => {
         if (!pasteText.trim()) return toast.error('Please paste some text');
@@ -162,6 +171,9 @@ export default function CreateDeck() {
                     cards,
                 });
             }
+            invalidateCache('decks');
+            invalidateCache('dashboard_decks');
+            if (deckId) invalidateCache(`deck_${deckId}`);
             toast.success('Deck saved successfully!');
             navigate('/decks');
         } catch (err) {

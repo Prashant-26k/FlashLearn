@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SkeletonCard } from '../components/Skeleton';
 import api from '../utils/api';
+import { getCached, setCached } from '../utils/cache';
 import { useToast } from '../context/ToastContext';
 
 export default function Dashboard() {
@@ -17,6 +18,16 @@ export default function Dashboard() {
     }, []);
 
     const loadData = async () => {
+        const cachedDecks = getCached('dashboard_decks');
+        const cachedCollections = getCached('dashboard_collections');
+
+        if (cachedDecks && cachedCollections) {
+            setRecentDecks(cachedDecks);
+            setCollections(cachedCollections);
+            setLoading(false);
+            return;
+        }
+
         try {
             const [decksRes, collectionsRes] = await Promise.all([
                 api.get('/api/decks?limit=8&sort=-createdAt'),
@@ -24,6 +35,8 @@ export default function Dashboard() {
             ]);
             setRecentDecks(decksRes.data || []);
             setCollections(collectionsRes.data || []);
+            setCached('dashboard_decks', decksRes.data || [], 30000);
+            setCached('dashboard_collections', collectionsRes.data || [], 30000);
         } catch {
             // Backend might not be running yet
         }

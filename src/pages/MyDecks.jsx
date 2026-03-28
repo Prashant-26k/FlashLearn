@@ -4,6 +4,7 @@ import { SkeletonGrid } from '../components/Skeleton';
 import Modal from '../components/Modal';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { getCached, setCached, invalidateCache } from '../utils/cache';
 
 export default function MyDecks() {
     const [decks, setDecks] = useState([]);
@@ -17,9 +18,16 @@ export default function MyDecks() {
     useEffect(() => { loadDecks(); }, []);
 
     const loadDecks = async () => {
+        const cached = getCached('decks');
+        if (cached) {
+            setDecks(cached);
+            setLoading(false);
+            return;
+        }
         try {
             const res = await api.get('/api/decks');
             setDecks(res.data || []);
+            setCached('decks', res.data || [], 60000);
         } catch { /* backend not running */ }
         setLoading(false);
     };
@@ -27,6 +35,8 @@ export default function MyDecks() {
     const handleDelete = async () => {
         try {
             await api.delete(`/api/decks/${deleteId}`);
+            invalidateCache('decks');
+            invalidateCache('dashboard_decks');
             setDecks(decks.filter(d => d._id !== deleteId));
             toast.success('Deck deleted');
         } catch {
@@ -42,6 +52,8 @@ export default function MyDecks() {
                 topic: deck.topic,
                 cards: deck.cards,
             });
+            invalidateCache('decks');
+            invalidateCache('dashboard_decks');
             toast.success('Deck duplicated');
             loadDecks();
         } catch {

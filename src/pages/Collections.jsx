@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { SkeletonGrid } from '../components/Skeleton';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { getCached, setCached, invalidateCache } from '../utils/cache';
 
 export default function Collections() {
     const [collections, setCollections] = useState([]);
@@ -23,6 +24,16 @@ export default function Collections() {
     useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
+        const cachedCol = getCached('collections');
+        const cachedDecks = getCached('decks');
+
+        if (cachedCol && cachedDecks) {
+            setCollections(cachedCol);
+            setDecks(cachedDecks);
+            setLoading(false);
+            return;
+        }
+
         try {
             const [colRes, deckRes] = await Promise.all([
                 api.get('/api/collections'),
@@ -30,6 +41,8 @@ export default function Collections() {
             ]);
             setCollections(colRes.data || []);
             setDecks(deckRes.data || []);
+            setCached('collections', colRes.data || [], 60000);
+            setCached('decks', deckRes.data || [], 60000);
         } catch { /* backend not running */ }
         setLoading(false);
     };
@@ -39,6 +52,8 @@ export default function Collections() {
         try {
             const res = await api.post('/api/collections', { name: newName, deckIds: [] });
             setCollections([...collections, res.data]);
+            invalidateCache('collections');
+            invalidateCache('dashboard_collections');
             setNewName('');
             setShowCreate(false);
             toast.success('Collection created');
@@ -51,6 +66,8 @@ export default function Collections() {
         try {
             const res = await api.put(`/api/collections/${col._id}`, col);
             setCollections(collections.map(c => c._id === col._id ? res.data : c));
+            invalidateCache('collections');
+            invalidateCache('dashboard_collections');
             if (selected?._id === col._id) setSelected(res.data);
         } catch {
             toast.error('Failed to update');
@@ -61,6 +78,8 @@ export default function Collections() {
         try {
             await api.delete(`/api/collections/${deleteId}`);
             setCollections(collections.filter(c => c._id !== deleteId));
+            invalidateCache('collections');
+            invalidateCache('dashboard_collections');
             if (selected?._id === deleteId) setSelected(null);
             toast.success('Collection deleted');
         } catch {
@@ -91,9 +110,17 @@ export default function Collections() {
 
     const colors = ['#5E6AD2', '#4CAF82', '#E8A320', '#E05252', '#7B84E0'];
 
-    const availableDecks = decks.filter(d =>
-        !selected?.deckIds?.includes(d._id) &&
-        d.title.toLowerCase().includes(searchDeck.toLowerCase())
+    const selectedDeckIdSet = useMemo(() =>
+        new Set(selected?.deckIds || []),
+        [selected?.deckIds]
+    );
+
+    const availableDecks = useMemo(() =>
+        decks.filter(d =>
+            !selectedDeckIdSet.has(d._id) &&
+            d.title.toLowerCase().includes(searchDeck.toLowerCase())
+        ),
+        [decks, selectedDeckIdSet, searchDeck]
     );
 
     if (selected) {

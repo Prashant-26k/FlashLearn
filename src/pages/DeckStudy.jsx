@@ -4,6 +4,7 @@ import FlashCard from '../components/FlashCard';
 import { SkeletonLine } from '../components/Skeleton';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { getCached, setCached, invalidateCache } from '../utils/cache';
 
 export default function DeckStudy() {
     const { id } = useParams();
@@ -21,10 +22,19 @@ export default function DeckStudy() {
     }, [id]);
 
     const loadDeck = async () => {
+        const cachedDeck = getCached(`deck_${id}`);
+        if (cachedDeck) {
+            setDeck(cachedDeck);
+            setTitle(cachedDeck.title);
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await api.get(`/api/decks/${id}`);
             setDeck(res.data);
             setTitle(res.data.title);
+            setCached(`deck_${id}`, res.data, 120000);
         } catch {
             toast.error('Failed to load deck');
         }
@@ -57,8 +67,12 @@ export default function DeckStudy() {
         setEditingTitle(false);
         if (title !== deck.title) {
             try {
-                await api.put(`/api/decks/${id}`, { ...deck, title });
-                setDeck({ ...deck, title });
+                const newDeck = { ...deck, title };
+                await api.put(`/api/decks/${id}`, newDeck);
+                setDeck(newDeck);
+                invalidateCache(`deck_${id}`);
+                invalidateCache('decks');
+                invalidateCache('dashboard_decks');
             } catch {
                 toast.error('Failed to update title');
             }

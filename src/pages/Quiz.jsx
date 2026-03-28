@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { getCached, setCached } from '../utils/cache';
 
 export default function Quiz() {
     const [searchParams] = useSearchParams();
@@ -36,9 +37,16 @@ export default function Quiz() {
     }, []);
 
     const loadDecks = async () => {
+        const cached = getCached('decks');
+        if (cached) {
+            setDecks(cached);
+            setLoading(false);
+            return;
+        }
         try {
             const res = await api.get('/api/decks');
             setDecks(res.data || []);
+            setCached('decks', res.data || [], 60000);
         } catch { }
         setLoading(false);
     };
@@ -69,7 +77,7 @@ export default function Quiz() {
             if (settings.mode === 'mc') {
                 // Get 3 wrong answers from other cards
                 const others = allCards.filter((_, i) => i !== idx);
-                const shuffled = others.sort(() => Math.random() - 0.5).slice(0, 3);
+                const shuffled = [...others].sort(() => Math.random() - 0.5).slice(0, 3);
                 const options = [...shuffled.map(c => c.answer), card.answer].sort(() => Math.random() - 0.5);
                 return { ...card, options };
             }
