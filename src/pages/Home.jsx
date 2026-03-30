@@ -1,395 +1,629 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Home() {
-    const { isAuthenticated, login } = useAuth();
-    const navigate = useNavigate();
-    const [topic, setTopic] = useState('');
-    const [scrolled, setScrolled] = useState(false);
+/* ─────────────────────────────────────────────
+   Inject global styles (keyframes, scrollbar,
+   noise overlay, reveal classes) once
+───────────────────────────────────────────── */
+const GLOBAL_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
 
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', onScroll);
-        return () => window.removeEventListener('scroll', onScroll);
-    }, []);
+  :root {
+    --obsidian: #080809;
+    --charcoal: #0f0f11;
+    --surface: #161619;
+    --elevated: #1d1d21;
+    --border: #2a2a2f;
+    --border-bright: #3d3d46;
+    --violet: #7c6ef7;
+    --violet-glow: rgba(124,110,247,0.18);
+    --violet-dim: rgba(124,110,247,0.06);
+    --violet-bright: #a598ff;
+    --text-primary: #f0f0f4;
+    --text-secondary: #8a8a96;
+    --text-muted: #4a4a56;
+    --success: #4caf82;
+    --danger: #e05252;
+    --warning: #e8a320;
+  }
 
-    const handleGenerate = (e) => {
-        e.preventDefault();
-        if (!topic.trim()) return;
-        if (isAuthenticated) {
-            navigate(`/create?topic=${encodeURIComponent(topic.trim())}`);
-        } else {
-            login();
-        }
-    };
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
 
-    const handleAction = (path) => {
-        if (isAuthenticated) navigate(path);
-        else login();
-    };
+  body {
+    background: var(--obsidian);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 
-    return (
-        <div style={{ minHeight: '100vh', background: '#0F0F10', color: '#F0F0F2', fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden' }}>
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 1000;
+  }
 
-            {/* ── Navbar ── */}
-            <header style={{
-                position: 'sticky', top: 0, zIndex: 50,
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                background: scrolled ? 'rgba(15,15,16,0.92)' : 'rgba(15,15,16,0.7)',
-                backdropFilter: 'blur(16px)',
-                transition: 'background 300ms ease',
-            }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {/* Logo */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 32, height: 32, background: '#5E6AD2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
-                        <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>
-                            <span style={{ color: '#5E6AD2' }}>Flash</span>
-                            <span style={{ color: '#F0F0F2' }}>Learn</span>
-                        </span>
-                    </div>
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--obsidian); }
+  ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
 
-                    {/* Nav links - desktop */}
-                    <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="desktop-nav">
-                        {['Features', 'How It Works'].map(label => (
-                            <a key={label} href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-                                style={{ fontSize: 14, fontWeight: 500, color: '#8A8A96', textDecoration: 'none', transition: 'color 150ms' }}
-                                onMouseEnter={e => e.target.style.color = '#F0F0F2'}
-                                onMouseLeave={e => e.target.style.color = '#8A8A96'}
-                            >{label}</a>
-                        ))}
-                    </nav>
+  /* keyframes */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+  }
+  @keyframes floatCard {
+    0%, 100% { transform: translateY(0) rotateX(4deg) rotateY(-4deg); }
+    50%       { transform: translateY(-18px) rotateX(4deg) rotateY(-4deg); }
+  }
+  @keyframes ambientPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%       { transform: scale(1.1); opacity: 0.7; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @keyframes shimmer-line {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.9; }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(4px); }
+  }
+  @keyframes growBar {
+    from { width: 0; }
+    to   { width: 76%; }
+  }
 
-                    {/* CTA */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        {isAuthenticated ? (
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                style={{ background: '#5E6AD2', color: '#fff', border: 'none', borderRadius: 99, height: 40, padding: '0 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(94,106,210,0.3)', transition: 'all 150ms' }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#7B84E0'}
-                                onMouseLeave={e => e.currentTarget.style.background = '#5E6AD2'}
-                            >Dashboard →</button>
-                        ) : (
-                            <>
-                                <button onClick={login} style={{ background: 'transparent', border: 'none', color: '#8A8A96', fontSize: 14, fontWeight: 500, cursor: 'pointer', padding: '0 12px', transition: 'color 150ms' }}
-                                    onMouseEnter={e => e.currentTarget.style.color = '#F0F0F2'}
-                                    onMouseLeave={e => e.currentTarget.style.color = '#8A8A96'}
-                                >Sign In</button>
-                                <button onClick={login}
-                                    style={{ background: '#5E6AD2', color: '#fff', border: 'none', borderRadius: 99, height: 40, padding: '0 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(94,106,210,0.3)', transition: 'all 150ms' }}
-                                    onMouseEnter={e => e.currentTarget.style.background = '#7B84E0'}
-                                    onMouseLeave={e => e.currentTarget.style.background = '#5E6AD2'}
-                                >Get Started</button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </header>
+  /* hero animations */
+  .hero-eyebrow { opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+  .hero-title   { opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+  .hero-sub     { opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+  .hero-actions { opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+  .hero-stats   { opacity: 0; animation: fadeUp 0.8s 1.0s forwards; }
 
-            <main>
-                {/* ── Hero ── */}
-                <section style={{ position: 'relative', padding: '96px 24px 80px', textAlign: 'center' }}>
-                    {/* Radial glow */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 800px 500px at 50% 0%, rgba(94,106,210,0.13), transparent 70%)', pointerEvents: 'none' }} />
+  .eyebrow-dot { animation: pulse 2s infinite; }
 
-                    <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative' }}>
-                        {/* Badge */}
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '4px 14px', borderRadius: 99, background: 'rgba(94,106,210,0.12)', border: '1px solid rgba(94,106,210,0.25)', color: '#7B84E0', fontSize: 12, fontWeight: 700, marginBottom: 32, letterSpacing: '0.05em' }}>
-                            <span style={{ position: 'relative', display: 'inline-flex' }}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#5E6AD2', display: 'block' }} />
-                                <span style={{ position: 'absolute', width: 8, height: 8, borderRadius: '50%', background: 'rgba(94,106,210,0.5)', animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite' }} />
-                            </span>
-                            NEW: PDF TO FLASHCARDS v2.0
-                        </div>
+  .card-inner { 
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4,0,0.2,1);
+    animation: floatCard 6s ease-in-out infinite;
+  }
+  .card-scene:hover .card-inner { animation: none; transform: rotateY(180deg); }
 
-                        {/* Headline */}
-                        <h1 style={{ fontSize: 'clamp(2.8rem, 7vw, 5rem)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.08, marginBottom: 24, color: '#F0F0F2' }}>
-                            Learn anything,{' '}
-                            <span style={{ background: 'linear-gradient(135deg, #5E6AD2 0%, #a5aff7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                                faster than ever.
-                            </span>
-                        </h1>
+  .card-face { backface-visibility: hidden; }
+  .card-back { transform: rotateY(180deg); }
 
-                        <p style={{ fontSize: 18, color: '#8A8A96', maxWidth: 560, margin: '0 auto 48px', lineHeight: 1.6 }}>
-                            Generate AI-powered flashcards from your notes, PDFs, or any topic. Study smarter with our intelligent retention system.
-                        </p>
+  .ambient-glow { animation: ambientPulse 4s ease-in-out infinite; }
 
-                        {/* Search bar */}
-                        <form onSubmit={handleGenerate} style={{ maxWidth: 640, margin: '0 auto 32px' }}>
-                            <div style={{
-                                display: 'flex', alignItems: 'center', gap: 8,
-                                padding: 6, borderRadius: 16,
-                                background: '#1E1E21', border: '1px solid #2A2A2E',
-                                boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
-                                transition: 'border-color 200ms, box-shadow 200ms',
-                            }}
-                                onFocusCapture={e => { e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'; e.currentTarget.style.boxShadow = '0 24px 64px rgba(0,0,0,0.4), 0 0 0 3px rgba(94,106,210,0.15)'; }}
-                                onBlurCapture={e => { e.currentTarget.style.borderColor = '#2A2A2E'; e.currentTarget.style.boxShadow = '0 24px 64px rgba(0,0,0,0.4)'; }}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#52525C" strokeWidth="2" strokeLinecap="round" style={{ marginLeft: 12, flexShrink: 0 }}>
-                                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-                                </svg>
-                                <input
-                                    value={topic}
-                                    onChange={e => setTopic(e.target.value)}
-                                    placeholder="Enter a topic or paste your notes..."
-                                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#F0F0F2', fontSize: 16, fontFamily: "'DM Sans', sans-serif", padding: '12px 4px' }}
-                                />
-                                <button type="submit" style={{
-                                    background: '#5E6AD2', color: '#fff', border: 'none',
-                                    borderRadius: 10, padding: '10px 24px', fontSize: 14, fontWeight: 700,
-                                    cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-                                    boxShadow: '0 4px 16px rgba(94,106,210,0.35)',
-                                    transition: 'all 150ms',
-                                }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = '#7B84E0'; e.currentTarget.style.transform = 'scale(1.02)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = '#5E6AD2'; e.currentTarget.style.transform = 'scale(1)'; }}
-                                >Generate</button>
-                            </div>
-                        </form>
+  .marquee-track { animation: marquee 30s linear infinite; }
 
-                        {/* Social proof strip */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#52525C', fontSize: 13 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="#52525C"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                Gemini AI Powered
-                            </span>
-                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#2A2A2E' }} />
-                            <span>4 Input Methods</span>
-                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#2A2A2E' }} />
-                            <span>Instant Decks</span>
-                        </div>
-                    </div>
-                </section>
+  .text-line { animation: shimmer-line 2s ease-in-out infinite; }
+  .text-line:nth-child(1) { width: 85%; animation-delay: 0s; }
+  .text-line:nth-child(2) { width: 70%; animation-delay: 0.1s; }
+  .text-line:nth-child(3) { width: 90%; animation-delay: 0.2s; }
+  .text-line:nth-child(4) { width: 60%; animation-delay: 0.3s; }
+  .text-line:nth-child(5) { width: 78%; animation-delay: 0.4s; }
 
-                {/* ── Feature Cards ── */}
-                <section id="features" style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-                        {[
-                            { icon: '📝', label: 'Text Paste', color: '#5E6AD2', desc: 'Paste lecture notes or articles to instantly extract key concepts and facts.', path: 'features' },
-                            { icon: '📄', label: 'PDF Upload', color: '#E05252', desc: `Upload textbooks or research papers — we'll extract the essentials.`, path: 'features' },
-                            { icon: '📘', label: 'Word Docs', color: '#5E6AD2', desc: 'Import structured .docx documents directly into interactive study decks.', path: 'features' },
-                            { icon: '🔍', label: 'Topic Search', color: '#E8A320', desc: 'Enter any subject and let AI generate a comprehensive deck from scratch.', path: 'features' },
-                        ].map(({ icon, label, color, desc, path }) => (
-                            <div key={label}
-                                onClick={() => document.getElementById(path)?.scrollIntoView({ behavior: 'smooth' })}
-                                style={{ padding: 24, borderRadius: 16, border: '1px solid #2A2A2E', background: 'rgba(30,30,33,0.3)', transition: 'all 200ms', cursor: 'pointer', borderTop: `3px solid ${color}` }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.7)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(30,30,33,0.3)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                            >
-                                <div style={{ fontSize: 28, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, background: 'rgba(94,106,210,0.08)', borderRadius: 12, border: '1px solid rgba(94,106,210,0.15)' }}>
-                                    {icon}
-                                </div>
-                                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F0F0F2', marginBottom: 8 }}>{label}</h3>
-                                <p style={{ fontSize: 13, color: '#8A8A96', lineHeight: 1.6 }}>{desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+  .gen-arrow { animation: bounce 1.5s ease-in-out infinite; }
 
-                {/* ── How It Works ── */}
-                <section id="how-it-works" style={{ padding: '80px 24px', background: 'rgba(30,30,33,0.2)', borderTop: '1px solid #2A2A2E', borderBottom: '1px solid #2A2A2E' }}>
-                    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-                            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, color: '#F0F0F2', marginBottom: 12, letterSpacing: '-0.02em' }}>How It Works</h2>
-                            <p style={{ color: '#8A8A96', fontSize: 15 }}>Master any subject in three simple steps.</p>
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 48, position: 'relative' }}>
-                            {[
-                                { n: '1', title: 'Input Content', desc: 'Upload documents or describe a topic you want to master.' },
-                                { n: '2', title: 'AI Generation', desc: 'Our AI analyzes context to create optimal Q&A pairs.' },
-                                { n: '3', title: 'Study & Retain', desc: 'Review cards, quiz yourself, and lock in long-term memory.' },
-                            ].map(({ n, title, desc }, i) => (
-                                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 240 }}>
-                                        <div style={{
-                                            width: 64, height: 64, borderRadius: '50%',
-                                            background: '#0F0F10', border: '2px solid #5E6AD2',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 22, fontWeight: 700, color: '#5E6AD2',
-                                            marginBottom: 24,
-                                            boxShadow: '0 0 24px rgba(94,106,210,0.3)',
-                                        }}>{n}</div>
-                                        <h4 style={{ fontSize: 16, fontWeight: 700, color: '#F0F0F2', marginBottom: 8 }}>{title}</h4>
-                                        <p style={{ fontSize: 13, color: '#8A8A96', lineHeight: 1.6 }}>{desc}</p>
-                                    </div>
-                                    {i < 2 && (
-                                        <div style={{ width: 60, height: 1, background: 'linear-gradient(90deg, #2A2A2E, #3D3D44, #2A2A2E)', flexShrink: 0, display: 'none' }} className="step-connector" />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+  .score-progress-fill {
+    height: 100%;
+    width: 76%;
+    background: linear-gradient(90deg, var(--violet), var(--violet-bright));
+    border-radius: 3px;
+    animation: growBar 1.5s 0.3s both;
+  }
 
-                {/* ── Quick Access Cards ── */}
-                <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 24 }}>
-                        {/* Collections */}
-                        <div
-                            onClick={() => handleAction('/collections')}
-                            style={{ position: 'relative', borderRadius: 16, border: '1px solid #2A2A2E', background: 'rgba(30,30,33,0.4)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = '#3D3D44'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#2A2A2E'; }}
-                        >
-                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#5E6AD2' }} />
-                            <div style={{ padding: 32 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 48 }}>
-                                    <div>
-                                        <h3 style={{ fontSize: 22, fontWeight: 700, color: '#F0F0F2', marginBottom: 8 }}>Collections</h3>
-                                        <p style={{ fontSize: 13, color: '#8A8A96' }}>Organize your study material by courses or projects.</p>
-                                    </div>
-                                    <span style={{ fontSize: 28, opacity: 0.7 }}>◫</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {[
-                                        { letter: 'M', label: 'Microbiology 101', count: '142 cards', color: '#5E6AD2' },
-                                        { letter: 'A', label: 'Advanced Calculus', count: '89 cards', color: '#7B84E0' },
-                                    ].map(({ letter, label, count, color }) => (
-                                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <div style={{ width: 36, height: 36, background: `${color}22`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color, fontSize: 14 }}>{letter}</div>
-                                            <span style={{ color: '#F0F0F2', fontSize: 13 }}>{label}</span>
-                                            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#52525C' }}>{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
 
-                        {/* Quiz Mode */}
-                        <div
-                            onClick={() => handleAction('/quiz')}
-                            style={{ position: 'relative', borderRadius: 16, border: '1px solid #2A2A2E', background: 'rgba(30,30,33,0.4)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = '#3D3D44'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#2A2A2E'; }}
-                        >
-                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#4CAF82' }} />
-                            <div style={{ padding: 32 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 48 }}>
-                                    <div>
-                                        <h3 style={{ fontSize: 22, fontWeight: 700, color: '#F0F0F2', marginBottom: 8 }}>Quiz Mode</h3>
-                                        <p style={{ fontSize: 13, color: '#8A8A96' }}>Test your knowledge with adaptive AI-generated quizzes.</p>
-                                    </div>
-                                    <span style={{ fontSize: 28, opacity: 0.7 }}>◈</span>
-                                </div>
-                                <div style={{ borderRadius: 12, background: 'linear-gradient(135deg, rgba(76,175,130,0.08), transparent)', border: '1px solid rgba(76,175,130,0.2)', padding: 20 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: '#4CAF82', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Active Streak</span>
-                                        <span style={{ fontWeight: 700, color: '#4CAF82', fontSize: 15 }}>12 Days 🔥</span>
-                                    </div>
-                                    <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', marginBottom: 12 }}>
-                                        <div style={{ width: '75%', height: '100%', background: '#4CAF82', borderRadius: 3 }} />
-                                    </div>
-                                    <p style={{ fontSize: 12, color: '#52525C' }}>You're in the top 5% of learners this week.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+  /* f-card top line */
+  .f-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--violet), transparent);
+  }
 
-                {/* ── Final CTA ── */}
-                <section style={{ padding: '0 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
-                    <div style={{
-                        borderRadius: 24, background: '#161618', border: '1px solid #2A2A2E',
-                        padding: 'clamp(48px, 8vw, 80px) 32px', textAlign: 'center', position: 'relative', overflow: 'hidden',
-                    }}>
-                        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 600px 300px at 50% 0%, rgba(94,106,210,0.07), transparent)', pointerEvents: 'none' }} />
-                        <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative' }}>
-                            <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 3rem)', fontWeight: 800, color: '#F0F0F2', marginBottom: 16, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                                Start mastering your subjects today
-                            </h2>
-                            <p style={{ color: '#8A8A96', marginBottom: 40, fontSize: 16, lineHeight: 1.6 }}>
-                                Join thousands of students using FlashLearn to accelerate their learning with AI-powered flashcards.
-                            </p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                                <button
-                                    onClick={() => handleAction('/create')}
-                                    style={{ background: '#5E6AD2', color: '#fff', border: 'none', borderRadius: 12, height: 52, padding: '0 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 32px rgba(94,106,210,0.35)', transition: 'all 150ms' }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = '#7B84E0'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = '#5E6AD2'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                >
-                                    Create a Deck
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </button>
-                                <button
-                                    onClick={() => handleAction('/quiz')}
-                                    style={{ background: 'rgba(255,255,255,0.05)', color: '#F0F0F2', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, height: 52, padding: '0 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms' }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                >Try Quiz Mode</button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
+  /* col-row accent bar */
+  .col-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .col-row.c1::before { background: var(--violet); }
+  .col-row.c2::before { background: var(--success); }
+  .col-row.c3::before { background: var(--warning); }
+  .col-row.c4::before { background: var(--danger); }
 
-            {/* ── Footer ── */}
-            <footer style={{ borderTop: '1px solid #2A2A2E', background: '#0F0F10', padding: '64px 24px 32px' }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 40, marginBottom: 48 }}>
-                        <div style={{ gridColumn: 'span 1' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                                <div style={{ width: 24, height: 24, background: '#5E6AD2', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
-                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                </div>
-                                <span style={{ fontSize: 16, fontWeight: 700 }}>
-                                    <span style={{ color: '#5E6AD2' }}>Flash</span><span style={{ color: '#F0F0F2' }}>Learn</span>
-                                </span>
-                            </div>
-                            <p style={{ color: '#52525C', fontSize: 13, lineHeight: 1.7, maxWidth: 220 }}>
-                                An AI-first learning tool designed to help you synthesize information faster and remember it longer.
-                            </p>
-                        </div>
-                        {[
-                            { title: 'Product', links: ['Features', 'Pricing', 'Changelog'] },
-                            { title: 'Resources', links: ['Blog', 'API Docs', 'Guide'] },
-                            { title: 'Legal', links: ['Privacy', 'Terms', 'Contact'] },
-                        ].map(({ title, links }) => (
-                            <div key={title}>
-                                <h4 style={{ color: '#F0F0F2', fontWeight: 700, fontSize: 13, marginBottom: 20 }}>{title}</h4>
-                                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {links.map(link => (
-                                        <li key={link}>
-                                            <a href="#" style={{ color: '#52525C', fontSize: 13, textDecoration: 'none', transition: 'color 150ms' }}
-                                                onMouseEnter={e => e.target.style.color = '#5E6AD2'}
-                                                onMouseLeave={e => e.target.style.color = '#52525C'}
-                                            >{link}</a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                    <div style={{ paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                        <p style={{ color: '#52525C', fontSize: 12 }}>© 2024 FlashLearn AI. All rights reserved.</p>
-                        <div style={{ display: 'flex', gap: 16 }}>
-                            {['Privacy', 'Terms'].map(t => (
-                                <a key={t} href="#" style={{ color: '#52525C', fontSize: 12, textDecoration: 'none', transition: 'color 150ms' }}
-                                    onMouseEnter={e => e.target.style.color = '#8A8A96'}
-                                    onMouseLeave={e => e.target.style.color = '#52525C'}
-                                >{t}</a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </footer>
+  /* featured testimonial top bar */
+  .testimonial-featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--violet), transparent);
+  }
 
-            <style>{`
-                @keyframes ping {
-                    75%, 100% { transform: scale(2); opacity: 0; }
-                }
-                @media (min-width: 768px) {
-                    .step-connector { display: block !important; }
-                    .desktop-nav { display: flex !important; }
-                }
-            `}</style>
-        </div>
+  /* hero grid bg */
+  .hero-grid::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(42,42,47,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42,42,47,0.15) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  /* masonry */
+  .masonry { columns: 3; column-gap: 20px; }
+  @media (max-width: 1024px) { .masonry { columns: 2; } }
+  @media (max-width: 640px)  { .masonry { columns: 1; } }
+
+  /* feature reverse */
+  .feature-reverse { direction: rtl; }
+  .feature-reverse > * { direction: ltr; }
+
+  @media (max-width: 768px) {
+    .hero-grid { grid-template-columns: 1fr !important; }
+    .hero-right { display: none; }
+    .feature-grid { grid-template-columns: 1fr !important; }
+    .feature-reverse { direction: ltr; }
+  }
+`;
+
+function useScrollReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible"); }),
+      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
     );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
 }
+
+/* ── Reusable tiny components ── */
+
+function Tag({ icon, children }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--violet-dim)", border: "1px solid rgba(124,110,247,0.2)", borderRadius: 4, padding: "4px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--violet-bright)", textTransform: "uppercase", marginBottom: 16 }}>
+      {icon}
+      {children}
+    </div>
+  );
+}
+
+/* ── Visual Panels ── */
+
+function TextPasteVisual() {
+  return (
+    <div className="f-card" style={{ background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 16, padding: 24, boxShadow: "0 24px 64px rgba(0,0,0,0.4)", position: "relative", overflow: "hidden" }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 14 }}>Input — Study Material</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="text-line" style={{ height: 8, borderRadius: 4, background: "var(--border)" }} />
+        ))}
+      </div>
+      <div className="gen-arrow" style={{ textAlign: "center", color: "var(--violet)", fontSize: 24, margin: "12px 0" }}>↓</div>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--violet-bright)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Generated Cards</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {["What is photosynthesis?", "Define chlorophyll.", "ATP production stages?"].map((q) => (
+          <div key={q} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--text-secondary)", fontFamily: "'DM Mono', monospace" }}>{q}</span>
+            <span style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(76,175,130,0.15)", border: "1px solid var(--success)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "var(--success)" }}>✓</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuizVisual() {
+  return (
+    <div className="f-card" style={{ background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 16, padding: 24, boxShadow: "0 24px 64px rgba(0,0,0,0.4)", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, marginBottom: 14, textAlign: "center" }}>
+        <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 500, marginBottom: 16 }}>Which layer of the OSI model handles routing?</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[
+            { label: "Data Link", cls: "" },
+            { label: "Network ✓", cls: "correct" },
+            { label: "Transport ✗", cls: "wrong" },
+            { label: "Session", cls: "" },
+          ].map(({ label, cls }) => (
+            <div key={label} style={{
+              padding: "10px 8px", borderRadius: 6, fontSize: 11, fontFamily: "'DM Mono', monospace",
+              border: cls === "correct" ? "1px solid var(--success)" : cls === "wrong" ? "1px solid var(--danger)" : "1px solid var(--border)",
+              background: cls === "correct" ? "rgba(76,175,130,0.1)" : cls === "wrong" ? "rgba(224,82,82,0.1)" : "var(--elevated)",
+              color: cls === "correct" ? "var(--success)" : cls === "wrong" ? "var(--danger)" : "var(--text-secondary)",
+              textAlign: "center",
+            }}>{label}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
+        <div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, color: "var(--violet-bright)", lineHeight: 1 }}>76%</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>Score</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace", marginBottom: 6 }}>19 / 25 correct</div>
+          <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+            <div className="score-progress-fill" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CollectionsVisual() {
+  const cols = [
+    { cls: "c1", icon: "📘", name: "Computer Science", count: "6 decks · 142 cards", badge: "Active" },
+    { cls: "c2", icon: "🧬", name: "Molecular Biology", count: "4 decks · 89 cards", badge: "Study" },
+    { cls: "c3", icon: "📐", name: "Linear Algebra", count: "3 decks · 64 cards", badge: "Review" },
+    { cls: "c4", icon: "🌍", name: "World History", count: "7 decks · 201 cards", badge: "Archive" },
+  ];
+  return (
+    <div className="f-card" style={{ background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 16, padding: 24, boxShadow: "0 24px 64px rgba(0,0,0,0.4)", position: "relative", overflow: "hidden" }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 16 }}>Your Collections</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {cols.map(({ cls, icon, name, count, badge }) => (
+          <div key={name} className={`col-row ${cls}`} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, position: "relative", overflow: "hidden" }}>
+            <span style={{ fontSize: 16 }}>{icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{name}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>{count}</div>
+            </div>
+            <div style={{ background: "var(--border)", borderRadius: 20, padding: "2px 8px", fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>{badge}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Component ── */
+
+export default function Home() {
+  const [scrolled, setScrolled] = useState(false);
+
+  // Inject CSS once
+  useEffect(() => {
+    if (!document.getElementById("fl-global-css")) {
+      const style = document.createElement("style");
+      style.id = "fl-global-css";
+      style.textContent = GLOBAL_CSS;
+      document.head.appendChild(style);
+    }
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useScrollReveal();
+
+  const { isAuthenticated, login } = useAuth();
+  const navigate = useNavigate();
+
+  const marqueeItems = ["Text Paste", "PDF Upload", "Word Documents", "Topic Search", "Quiz Mode", "Collections", "Gemini AI", "Spaced Repetition", "Export Decks", "Auto-Save"];
+
+  const testimonials = [
+    { featured: true, stars: 5, quote: <>I uploaded my entire operating systems textbook as a PDF and had <strong>180 flashcards in under 60 seconds.</strong> Passed my exam with the highest score in the class.</>, name: "Arjun Mehta", role: "CS · IIT Delhi", initials: "A", gradient: "linear-gradient(135deg,#7c6ef7,#a598ff)", topReview: true },
+    { featured: false, stars: 5, quote: <>The quiz mode is <strong>addictive.</strong> I set a 15-second timer per card and suddenly retention went through the roof. This actually works.</>, name: "Sofia Reyes", role: "Med Student · Madrid", initials: "S", gradient: "linear-gradient(135deg,#4caf82,#6dcfa2)" },
+    { featured: false, stars: 5, quote: <>Switched from Anki. The UI alone was enough — but the <strong>AI-generated cards are genuinely better</strong> than the ones I spent hours writing myself.</>, name: "Kai Lindberg", role: "Law Student · Stockholm", initials: "K", gradient: "linear-gradient(135deg,#e8a320,#f0c060)" },
+    { featured: false, stars: 5, quote: <>Pasted my biochem lecture notes at 11pm before a 9am exam. <strong>Generated 40 cards, studied for 2 hours, got an A.</strong> This is insane.</>, name: "Priya Nair", role: "Biochemistry · UCL", initials: "P", gradient: "linear-gradient(135deg,#e05252,#f07070)" },
+    { featured: false, stars: 5, quote: <>The Collections feature changed how I study. I have every subject organized, can quiz across multiple decks simultaneously, and <strong>actually track my progress.</strong></>, name: "Marcus Chen", role: "MBA · INSEAD", initials: "M", gradient: "linear-gradient(135deg,#7c6ef7,#5e52c0)" },
+    { featured: true, stars: 5, quote: <>I teach a university course. I started using FlashLearn to build study materials for my students. The <strong>topic search is scary good</strong> — it knows exactly what matters.</>, name: "Dr. Elena Rossi", role: "Professor · Bocconi", initials: "D", gradient: "linear-gradient(135deg,#4caf82,#2d8f65)", featuredLabel: "Featured" },
+    { featured: false, stars: 4, quote: <>Finally a flashcard tool that <strong>doesn't look like it was designed in 2009.</strong> The dark mode is beautiful, the cards are clean, and the whole flow just works.</>, name: "Jordan Wells", role: "UX Designer · Berlin", initials: "J", gradient: "linear-gradient(135deg,#e8a320,#c07010)" },
+    { featured: false, stars: 5, quote: <>Uploaded a 48-page DOCX thesis. Got <strong>50 high-quality cards</strong> that perfectly captured the key arguments. Used them for my viva prep. First class result.</>, name: "Olivia Thompson", role: "PhD Candidate · Oxford", initials: "O", gradient: "linear-gradient(135deg,#a598ff,#7c6ef7)" },
+  ];
+
+  return (
+    <div style={{ background: "var(--obsidian)", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", overflowX: "hidden" }}>
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 500,
+        padding: "20px 48px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
+        background: scrolled ? "rgba(8,8,9,0.85)" : "transparent",
+        backdropFilter: scrolled ? "blur(20px)" : "none",
+        transition: "all 0.4s ease",
+      }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: "0.05em" }}>
+          <span style={{ color: "var(--violet)" }}>Flash</span>Learn
+        </div>
+
+        <ul style={{ display: "flex", gap: 32, listStyle: "none" }}>
+          {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label]) => (
+            <li key={label}>
+              <a href={href} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
+                onMouseEnter={e => (e.target.style.color = "var(--text-primary)")}
+                onMouseLeave={e => (e.target.style.color = "var(--text-secondary)")}
+              >{label}</a>
+            </li>
+          ))}
+        </ul>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {isAuthenticated ? (
+            <button onClick={() => navigate("/dashboard")} style={navBtnPrimary}>Dashboard →</button>
+          ) : (
+            <>
+              <button onClick={login} style={navBtnGhost}>Sign In</button>
+              <button onClick={login} style={navBtnPrimary}>Start Free →</button>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="hero-grid" style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr", position: "relative", overflow: "hidden" }}>
+        {/* left */}
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "140px 64px 80px 80px", position: "relative", zIndex: 2 }}>
+          <div className="hero-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--violet-bright)", marginBottom: 28 }}>
+            <span className="eyebrow-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--violet)" }} />
+            AI-Powered Learning Platform
+          </div>
+
+          <h1 className="hero-title" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(72px,8vw,110px)", lineHeight: 0.92, letterSpacing: "-0.01em", color: "var(--text-primary)", marginBottom: 28 }}>
+            Learn<br />
+            <span style={{ color: "transparent", WebkitTextStroke: "1.5px var(--violet)", display: "block" }}>Anything.</span>
+            Faster.
+          </h1>
+
+          <p className="hero-sub" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 440, lineHeight: 1.7, marginBottom: 40, fontWeight: 300 }}>
+            Generate intelligent flashcard decks from your notes, PDFs, and any topic — powered by Gemini AI. Retain more, study less.
+          </p>
+
+          <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <button onClick={login} style={heroPrimaryBtn}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+              Generate Free Deck
+            </button>
+            <button style={heroSecondaryBtn}>Watch Demo ↗</button>
+          </div>
+
+          <div className="hero-stats" style={{ display: "flex", gap: 32, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)" }}>
+            {[["40", "K+", "Cards Generated"], ["4", "×", "Faster Retention"], ["98", "%", "Accuracy Rate"]].map(([val, suffix, label]) => (
+              <div key={label}>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: "var(--text-primary)", lineHeight: 1, marginBottom: 4 }}>
+                  {val}<span style={{ color: "var(--violet)" }}>{suffix}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* right — 3D flip card */}
+        <div className="hero-right" style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "140px 80px 80px 0" }}>
+          <div className="ambient-glow" style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,110,247,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+          <div className="card-scene" style={{ perspective: 1200, width: 380, height: 480, position: "relative", cursor: "pointer" }}>
+            <div className="card-inner" style={{ width: "100%", height: "100%", position: "relative" }}>
+
+              {/* Front */}
+              <div className="card-face" style={{ position: "absolute", width: "100%", height: "100%", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 48, textAlign: "center", background: "linear-gradient(135deg,#1a1a20 0%,#12121a 100%)", border: "1px solid var(--border)", boxShadow: "0 0 0 1px rgba(124,110,247,0.06),0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.08),inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+                <div style={chipStyle}>Neuroscience · Card 07</div>
+                <div style={cardLabelStyle}>Question</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>What is Long-Term Potentiation and its role in memory formation?</div>
+                <div style={{ position: "absolute", bottom: 20, right: 20, fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.5 }}><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 .49-3.21" /></svg>
+                  hover to flip
+                </div>
+              </div>
+
+              {/* Back */}
+              <div className="card-face card-back" style={{ position: "absolute", width: "100%", height: "100%", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 48, textAlign: "center", background: "linear-gradient(135deg,#18161f 0%,#0f0e16 100%)", border: "1px solid rgba(124,110,247,0.3)", boxShadow: "0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.15),inset 0 1px 0 rgba(124,110,247,0.1)" }}>
+                <div style={{ ...chipStyle, background: "rgba(124,110,247,0.12)", borderColor: "rgba(124,110,247,0.3)" }}>Answer</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "rgba(124,110,247,0.7)", textTransform: "uppercase", marginBottom: 20 }}>Answer</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "var(--violet-bright)", lineHeight: 1.5 }}>LTP is a persistent strengthening of synapses based on recent activity — the cellular mechanism underlying learning and memory in the hippocampus.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* bg grid */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(42,42,47,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(42,42,47,0.15) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)" }} />
+      </section>
+
+      {/* ── MARQUEE ── */}
+      <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "16px 0", overflow: "hidden", background: "var(--surface)", position: "relative", zIndex: 2 }}>
+        <div className="marquee-track" style={{ display: "flex", width: "max-content" }}>
+          {[...marqueeItems, ...marqueeItems].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 40px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--violet)", flexShrink: 0 }} />
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── FEATURES ── */}
+      <section id="features" style={{ padding: "140px 0", position: "relative" }}>
+        <div className="reveal" style={{ textAlign: "center", padding: "0 80px 80px" }}>
+          <span style={eyebrowStyle}>Four Ways to Generate</span>
+          <h2 style={sectionTitleStyle}>Your Knowledge.<br />Any Source.</h2>
+          <p style={sectionSubStyle}>FlashLearn transforms anything into study material — paste text, upload files, or just name a topic.</p>
+        </div>
+
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 80px" }}>
+
+          {/* Feature 1 */}
+          <div className="reveal feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
+            <div>
+              <span style={featureNumberStyle}>01</span>
+              <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>}>Text Paste</Tag>
+              <h3 style={featureTitleStyle}>Paste.<br />Generate.<br />Done.</h3>
+              <p style={featureDescStyle}>Drop in your lecture notes, textbook excerpts, or any body of text. Our AI identifies key concepts and crafts precise question-answer pairs in seconds.</p>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                {["Supports up to 15,000 characters", "Smart concept extraction", "Up to 20 cards per generation"].map(item => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--text-secondary)", fontFamily: "'DM Mono', monospace" }}>
+                    <span style={{ color: "var(--violet)", fontSize: 12 }}>→</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="reveal reveal-delay-2"><TextPasteVisual /></div>
+          </div>
+
+          {/* Feature 2 */}
+          <div className="reveal feature-reverse feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
+            <div>
+              <span style={featureNumberStyle}>02</span>
+              <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>}>Quiz Mode</Tag>
+              <h3 style={featureTitleStyle}>Test Your<br />Knowledge.</h3>
+              <p style={featureDescStyle}>Take multiple-choice or typed-answer quizzes across any deck combination. Timer mode, instant feedback, and detailed result reviews keep you sharp.</p>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                {["Multiple choice + typed answers", "Configurable per-question timers", "Full result breakdown + review"].map(item => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--text-secondary)", fontFamily: "'DM Mono', monospace" }}>
+                    <span style={{ color: "var(--violet)", fontSize: 12 }}>→</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="reveal reveal-delay-2"><QuizVisual /></div>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="reveal feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0" }}>
+            <div>
+              <span style={featureNumberStyle}>03</span>
+              <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>}>Collections</Tag>
+              <h3 style={featureTitleStyle}>Organize<br />Everything.</h3>
+              <p style={featureDescStyle}>Group your decks into curated collections — by subject, semester, or study goal. Keep your entire knowledge library structured and instantly accessible.</p>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                {["Unlimited collections & decks", "Cross-deck quiz sessions", "One-click export & backup"].map(item => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--text-secondary)", fontFamily: "'DM Mono', monospace" }}>
+                    <span style={{ color: "var(--violet)", fontSize: 12 }}>→</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="reveal reveal-delay-2"><CollectionsVisual /></div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section id="testimonials" style={{ padding: "140px 80px", background: "var(--charcoal)", borderTop: "1px solid var(--border)" }}>
+        <div style={{ marginBottom: 64 }}>
+          <span style={eyebrowStyle}>Wall of Love</span>
+          <h2 style={sectionTitleStyle}>Students Who<br />Actually Pass.</h2>
+        </div>
+
+        <div className="masonry">
+          {testimonials.map((t, i) => (
+            <div key={i} className={`reveal ${i % 3 === 1 ? "reveal-delay-1" : i % 3 === 2 ? "reveal-delay-2" : ""} ${t.featured ? "testimonial-featured" : ""}`}
+              style={{
+                breakInside: "avoid", background: t.featured ? "linear-gradient(135deg,#1d1d25 0%,#17171f 100%)" : "var(--elevated)",
+                border: t.featured ? "1px solid rgba(124,110,247,0.3)" : "1px solid var(--border)",
+                borderRadius: 16, padding: 28, marginBottom: 20,
+                position: "relative", transition: "transform 0.3s, border-color 0.3s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = t.featured ? "rgba(124,110,247,0.5)" : "var(--border-bright)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderColor = t.featured ? "rgba(124,110,247,0.3)" : "var(--border)"; }}
+            >
+              <div style={{ color: "var(--warning)", fontSize: 12, letterSpacing: 1, marginBottom: 12 }}>{"★".repeat(t.stars)}{"☆".repeat(5 - t.stars)}</div>
+              {(t.topReview || t.featuredLabel) && (
+                <div style={{ position: "absolute", top: 20, right: 20, background: "rgba(232,163,32,0.1)", border: "1px solid rgba(232,163,32,0.3)", borderRadius: 20, padding: "2px 8px", fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--warning)" }}>
+                  {t.topReview ? "Top Review" : t.featuredLabel}
+                </div>
+              )}
+              {t.featured && <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 64, lineHeight: 0.8, color: "var(--violet)", opacity: 0.3, marginBottom: 8, display: "block" }}>"</span>}
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 20, fontWeight: 300 }}>{t.quote}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: t.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: "#fff", flexShrink: 0 }}>{t.initials}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{t.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section id="cta" style={{ padding: "160px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, background: "radial-gradient(ellipse, rgba(124,110,247,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <span className="reveal" style={eyebrowStyle}>Free to Start · No Credit Card</span>
+        <h2 className="reveal" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(64px,7vw,100px)", lineHeight: 0.93, color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: 24 }}>
+          Start Learning<br />
+          <span style={{ color: "var(--violet)" }}>Right Now.</span>
+        </h2>
+        <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7 }}>Generate your first AI-powered flashcard deck in under 30 seconds. No setup, no friction.</p>
+        <div className="reveal" style={{ display: "flex", gap: 14, justifyContent: "center", alignItems: "center" }}>
+          <button onClick={login} style={{ height: 52, padding: "0 32px", background: "var(--violet)", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.25s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-bright)"; e.currentTarget.style.boxShadow = "0 0 48px rgba(124,110,247,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "var(--violet)"; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.transform = ""; }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+            Generate Free Deck
+          </button>
+          <button style={{ height: 52, padding: "0 32px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", transition: "all 0.25s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-bright)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          >View Pricing</button>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ padding: "48px 80px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--charcoal)" }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: "0.05em" }}>
+          <span style={{ color: "var(--violet)" }}>Flash</span>Learn
+        </div>
+        <ul style={{ display: "flex", gap: 28, listStyle: "none" }}>
+          {["Privacy", "Terms", "Contact", "GitHub"].map(link => (
+            <li key={link}>
+              <a href="#" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", textTransform: "uppercase", transition: "color 0.2s" }}
+                onMouseEnter={e => (e.target.style.color = "var(--text-secondary)")}
+                onMouseLeave={e => (e.target.style.color = "var(--text-muted)")}
+              >{link}</a>
+            </li>
+          ))}
+        </ul>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>© 2026 FlashLearn</div>
+      </footer>
+
+    </div>
+  );
+}
+
+/* ── Shared style objects ── */
+const navBtnGhost = { height: 36, padding: "0 18px", borderRadius: 6, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", transition: "all 0.2s" };
+const navBtnPrimary = { height: 36, padding: "0 18px", borderRadius: 6, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", background: "var(--violet)", color: "#fff", border: "none", transition: "all 0.2s" };
+const heroPrimaryBtn = { height: 48, padding: "0 28px", background: "var(--violet)", color: "#fff", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.25s" };
+const heroSecondaryBtn = { height: 48, padding: "0 24px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 15, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", transition: "all 0.25s" };
+const eyebrowStyle = { fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--violet-bright)", marginBottom: 16, display: "block" };
+const sectionTitleStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(48px,5vw,72px)", lineHeight: 0.95, letterSpacing: "0.01em", color: "var(--text-primary)", marginBottom: 20 };
+const sectionSubStyle = { fontSize: 16, color: "var(--text-secondary)", maxWidth: 520, margin: "0 auto", fontWeight: 300, lineHeight: 1.7 };
+const featureNumberStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 120, lineHeight: 1, color: "transparent", WebkitTextStroke: "1px var(--border)", marginBottom: -20, display: "block", userSelect: "none" };
+const featureTitleStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: "var(--text-primary)", letterSpacing: "0.01em", marginBottom: 16 };
+const featureDescStyle = { fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.75, fontWeight: 300, marginBottom: 28 };
+const chipStyle = { position: "absolute", top: 20, left: 20, background: "var(--violet-dim)", border: "1px solid rgba(124,110,247,0.2)", borderRadius: 6, padding: "4px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--violet-bright)", textTransform: "uppercase" };
+const cardLabelStyle = { fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 20 };
