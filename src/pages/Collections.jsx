@@ -39,10 +39,12 @@ export default function Collections() {
                 api.get('/api/collections'),
                 api.get('/api/decks'),
             ]);
-            setCollections(colRes.data || []);
-            setDecks(deckRes.data || []);
-            setCached('collections', colRes.data || [], 60000);
-            setCached('decks', deckRes.data || [], 60000);
+            const colData = Array.isArray(colRes.data) ? colRes.data : [];
+            const decksData = Array.isArray(deckRes.data) ? deckRes.data : [];
+            setCollections(colData);
+            setDecks(decksData);
+            setCached('collections', colData, 60000);
+            setCached('decks', decksData, 60000);
         } catch { /* backend not running */ }
         setLoading(false);
     };

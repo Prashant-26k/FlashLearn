@@ -26,8 +26,9 @@ export default function MyDecks() {
         }
         try {
             const res = await api.get('/api/decks');
-            setDecks(res.data || []);
-            setCached('decks', res.data || [], 60000);
+            const decksData = Array.isArray(res.data) ? res.data : [];
+            setDecks(decksData);
+            setCached('decks', decksData, 60000);
         } catch { /* backend not running */ }
         setLoading(false);
     };

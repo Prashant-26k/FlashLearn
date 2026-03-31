@@ -33,10 +33,12 @@ export default function Dashboard() {
                 api.get('/api/decks?limit=8&sort=-createdAt'),
                 api.get('/api/collections?limit=6'),
             ]);
-            setRecentDecks(decksRes.data || []);
-            setCollections(collectionsRes.data || []);
-            setCached('dashboard_decks', decksRes.data || [], 30000);
-            setCached('dashboard_collections', collectionsRes.data || [], 30000);
+            const decksData = Array.isArray(decksRes.data) ? decksRes.data : [];
+            const collectionsData = Array.isArray(collectionsRes.data) ? collectionsRes.data : [];
+            setRecentDecks(decksData);
+            setCollections(collectionsData);
+            setCached('dashboard_decks', decksData, 30000);
+            setCached('dashboard_collections', collectionsData, 30000);
         } catch {
             // Backend might not be running yet
         }
