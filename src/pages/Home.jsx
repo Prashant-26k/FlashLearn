@@ -406,6 +406,7 @@ function DemoFlashCard() {
 /* ── Main Component ── */
 
 export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   // Inject CSS once
@@ -442,40 +443,110 @@ export default function Home() {
   return (
     <div style={{ background: "var(--obsidian)", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", overflowX: "hidden", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* ── NAV ── */}
-      <nav className="home-header" style={{
+      {/* ── HEADER ── */}
+      <header className="home-header" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 500,
         borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
         background: scrolled ? "rgba(8,8,9,0.85)" : "transparent",
         backdropFilter: scrolled ? "blur(20px)" : "none",
         transition: "all 0.4s ease",
       }}>
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: "0.05em" }}>
-          <span style={{ color: "var(--violet)" }}>Flash</span>Learn
+        <div className="home-nav-container" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 48px',
+        }}>
+            {/* Logo */}
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: "0.05em", flexShrink: 0 }}>
+              <span style={{ color: "var(--violet)" }}>Flash</span>Learn
+            </div>
+
+            {/* Desktop nav */}
+            <ul className="home-nav-desktop" style={{
+                display: 'flex', gap: 32, listStyle: 'none', margin: 0, padding: 0,
+                position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+            }}>
+              {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label]) => (
+                <li key={label}>
+                  <a href={href} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
+                    onMouseEnter={e => (e.target.style.color = "var(--text-primary)")}
+                    onMouseLeave={e => (e.target.style.color = "var(--text-secondary)")}
+                  >{label}</a>
+                </li>
+              ))}
+            </ul>
+
+            {/* Desktop CTA */}
+            <div className="home-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                {isAuthenticated ? (
+                    <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
+                        Dashboard →
+                    </button>
+                ) : (
+                    <>
+                        <button onClick={login} style={navBtnGhost}>Sign In</button>
+                        <button onClick={login} style={navBtnPrimary}>Start Free →</button>
+                    </>
+                )}
+            </div>
+
+            {/* Mobile: Sign in + Hamburger */}
+            <div className="home-nav-mobile" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {isAuthenticated ? (
+                    <button className="btn btn-secondary btn-sm" onClick={() => navigate('/dashboard')}>
+                        Dashboard
+                    </button>
+                ) : (
+                    <button className="btn btn-primary btn-sm" onClick={login}>
+                        Sign In
+                    </button>
+                )}
+                <button
+                    onClick={() => setMenuOpen(o => !o)}
+                    style={{
+                        background: 'none', border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)', padding: '6px 8px',
+                        cursor: 'pointer', color: 'var(--text-primary)',
+                        display: 'flex', flexDirection: 'column', gap: 4,
+                    }}
+                    aria-label="Toggle menu"
+                >
+                    {[0, 1, 2].map(i => (
+                        <span key={i} style={{
+                            display: 'block', width: 18, height: 2,
+                            background: 'var(--text-primary)', borderRadius: 2,
+                            transition: 'all 200ms ease',
+                            transform: menuOpen
+                                ? i === 0 ? 'translateY(6px) rotate(45deg)'
+                                : i === 2 ? 'translateY(-6px) rotate(-45deg)'
+                                : 'scaleX(0)'
+                                : 'none',
+                        }} />
+                    ))}
+                </button>
+            </div>
         </div>
 
-        <ul style={{ display: "flex", gap: 32, listStyle: "none" }}>
-          {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label]) => (
-            <li key={label}>
-              <a href={href} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
-                onMouseEnter={e => (e.target.style.color = "var(--text-primary)")}
-                onMouseLeave={e => (e.target.style.color = "var(--text-secondary)")}
-              >{label}</a>
-            </li>
-          ))}
-        </ul>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {isAuthenticated ? (
-            <button onClick={() => navigate("/dashboard")} style={navBtnPrimary}>Dashboard →</button>
-          ) : (
-            <>
-              <button onClick={login} style={navBtnGhost}>Sign In</button>
-              <button onClick={login} style={navBtnPrimary}>Start Free →</button>
-            </>
-          )}
+        {/* Mobile dropdown menu */}
+        <div style={{
+            maxHeight: menuOpen ? 240 : 0,
+            overflow: 'hidden',
+            transition: 'max-height 300ms ease',
+            borderTop: menuOpen ? '1px solid var(--border-subtle)' : 'none',
+            background: 'var(--obsidian)',
+        }} className="home-nav-mobile-dropdown">
+            {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label], i) => (
+                <a key={label} href={href} onClick={() => setMenuOpen(false)} style={{
+                    display: 'block', textDecoration: 'none',
+                    padding: '14px 24px',
+                    borderBottom: i < 2 ? '1px solid var(--border-subtle)' : 'none',
+                    fontSize: 'var(--text-base)', color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                }}>
+                    {label}
+                </a>
+            ))}
         </div>
-      </nav>
+      </header>
 
       {/* ── HERO ── */}
       <section className="hero-grid" style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr", position: "relative", overflow: "hidden" }}>

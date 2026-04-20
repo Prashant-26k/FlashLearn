@@ -1042,3 +1042,25 @@ select {
     font-size: 10px;
   }
 }
+
+/* ── Home navbar responsive ── */
+.home-nav-desktop {
+    display: flex;
+    align-items: center;
+}
+
+.home-nav-mobile {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .home-nav-desktop {
+        display: none !important;
+    }
+    .home-nav-mobile {
+        display: flex;
+    }
+    header > .home-nav-container {
+        padding: 12px 16px !important;
+    }
+}
