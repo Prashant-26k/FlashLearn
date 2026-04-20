@@ -186,7 +186,7 @@ const GLOBAL_CSS = `
 
   @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr !important; }
-    .hero-right { display: none; }
+    .hero-right { padding: 40px 16px 80px 16px !important; }
     .feature-grid { grid-template-columns: 1fr !important; }
     .feature-reverse { direction: ltr; }
   }
@@ -304,6 +304,105 @@ function CollectionsVisual() {
   );
 }
 
+const DEMO_CARDS = [
+  { question: 'What is photosynthesis?', answer: 'The process by which green plants convert sunlight into food using CO₂ and water.' },
+  { question: "What is Newton's 1st Law?", answer: 'An object at rest stays at rest unless acted upon by an external force.' },
+  { question: 'What is mitosis?', answer: 'Cell division producing two genetically identical daughter cells.' },
+];
+
+function DemoFlashCard() {
+  const [flipped, setFlipped] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 600);
+    const handle = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
+
+  // Auto-flip on mobile so the user sees both sides
+  useEffect(() => {
+    if (!isMobile) return;
+    const t = setTimeout(() => setFlipped(f => !f), 2200);
+    return () => clearTimeout(t);
+  }, [flipped, isMobile, index]);
+
+  // Cycle to next card after showing answer
+  useEffect(() => {
+    if (!flipped) return;
+    const t = setTimeout(() => {
+      setFlipped(false);
+      setIndex(i => (i + 1) % DEMO_CARDS.length);
+    }, 2800);
+    return () => clearTimeout(t);
+  }, [flipped]);
+
+  const card = DEMO_CARDS[index];
+  const w = isMobile ? '100%' : 420;
+  const h = isMobile ? 160 : 250;
+
+  const frontStyle = { 
+    background: 'linear-gradient(135deg,#1a1a20 0%,#12121a 100%)', 
+    boxShadow: '0 0 0 1px rgba(124,110,247,0.06),0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.08),inset 0 1px 0 rgba(255,255,255,0.04)',
+    flexDirection: 'column', gap: 8 
+  };
+  const backStyle = { 
+    background: 'linear-gradient(135deg,#18161f 0%,#0f0e16 100%)', 
+    border: '1px solid rgba(124,110,247,0.3)', 
+    boxShadow: '0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.15),inset 0 1px 0 rgba(124,110,247,0.1)',
+    flexDirection: 'column', gap: 8 
+  };
+
+  return (
+    <div style={{ width: '100%', maxWidth: w, margin: '0 auto' }}>
+      <div className="card-scene" style={{ width: '100%', height: h }}>
+        <div
+          className={`card-inner ${flipped ? 'flipped' : ''}`}
+          onClick={() => setFlipped(f => !f)}
+          role="button"
+          tabIndex={0}
+          aria-label={flipped ? 'Show question' : 'Tap to reveal answer'}
+          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') setFlipped(f => !f); }}
+          style={{ animation: flipped ? 'none' : undefined }}
+        >
+          <div className="card-face card-front" style={frontStyle}>
+            <span className="card-label" style={{ position: 'absolute', top: 16, left: 16, fontFamily: "'DM Mono', monospace", letterSpacing: '0.1em', background: "var(--violet-dim)", border: "1px solid rgba(124,110,247,0.2)", borderRadius: 6, padding: "4px 10px", color: "var(--violet-bright)", textTransform: "uppercase" }}>Q</span>
+            <p style={{ fontSize: isMobile ? 'var(--text-sm)' : 'var(--text-md)', fontWeight: 500, color: 'var(--text-primary)' }}>
+              {card.question}
+            </p>
+            {!flipped && (
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.5 }}><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 .49-3.21" /></svg>
+                {isMobile ? 'Tap to flip' : 'Click to flip'}
+              </span>
+            )}
+          </div>
+          <div className="card-face card-back" style={backStyle}>
+            <span className="card-label" style={{ position: 'absolute', top: 16, left: 16, fontFamily: "'DM Mono', monospace", letterSpacing: '0.1em', background: "rgba(124,110,247,0.12)", border: "1px solid rgba(124,110,247,0.3)", borderRadius: 6, padding: "4px 10px", color: "var(--violet-bright)", textTransform: "uppercase" }}>A</span>
+            <p style={{ fontSize: isMobile ? 'var(--text-xs)' : 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {card.answer}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Dot indicators */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+        {DEMO_CARDS.map((_, i) => (
+          <div key={i} style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: i === index ? 'var(--accent)' : 'var(--border-subtle)',
+            transition: 'background 300ms ease',
+            cursor: 'pointer',
+          }} onClick={() => { setIndex(i); setFlipped(false); }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Main Component ── */
 
 export default function Home() {
@@ -341,12 +440,11 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ background: "var(--obsidian)", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", overflowX: "hidden" }}>
+    <div style={{ background: "var(--obsidian)", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", overflowX: "hidden", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
       {/* ── NAV ── */}
-      <nav style={{
+      <nav className="home-header" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 500,
-        padding: "20px 48px", display: "flex", alignItems: "center", justifyContent: "space-between",
         borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
         background: scrolled ? "rgba(8,8,9,0.85)" : "transparent",
         backdropFilter: scrolled ? "blur(20px)" : "none",
@@ -388,7 +486,7 @@ export default function Home() {
             AI-Powered Learning Platform
           </div>
 
-          <h1 className="hero-title" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(72px,8vw,110px)", lineHeight: 0.92, letterSpacing: "-0.01em", color: "var(--text-primary)", marginBottom: 28 }}>
+          <h1 className="hero-title home-hero-title" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(72px,8vw,110px)", lineHeight: 0.92, letterSpacing: "-0.01em", color: "var(--text-primary)", marginBottom: 28 }}>
             Learn<br />
             <span style={{ color: "transparent", WebkitTextStroke: "1.5px var(--violet)", display: "block" }}>Anything.</span>
             Faster.
@@ -399,11 +497,11 @@ export default function Home() {
           </p>
 
           <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <button onClick={login} style={heroPrimaryBtn}>
+            <button onClick={login} className="home-cta-btn" style={heroPrimaryBtn}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
               Generate Free Deck
             </button>
-            <button style={heroSecondaryBtn}>Watch Demo ↗</button>
+            <button className="home-cta-btn" style={heroSecondaryBtn}>Watch Demo ↗</button>
           </div>
 
           <div className="hero-stats" style={{ display: "flex", gap: 32, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)" }}>
@@ -422,28 +520,7 @@ export default function Home() {
         <div className="hero-right" style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "140px 80px 80px 0" }}>
           <div className="ambient-glow" style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,110,247,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-          <div className="card-scene" style={{ perspective: 1200, width: 380, height: 480, position: "relative", cursor: "pointer" }}>
-            <div className="card-inner" style={{ width: "100%", height: "100%", position: "relative" }}>
-
-              {/* Front */}
-              <div className="card-face" style={{ position: "absolute", width: "100%", height: "100%", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 48, textAlign: "center", background: "linear-gradient(135deg,#1a1a20 0%,#12121a 100%)", border: "1px solid var(--border)", boxShadow: "0 0 0 1px rgba(124,110,247,0.06),0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.08),inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-                <div style={chipStyle}>Neuroscience · Card 07</div>
-                <div style={cardLabelStyle}>Question</div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>What is Long-Term Potentiation and its role in memory formation?</div>
-                <div style={{ position: "absolute", bottom: 20, right: 20, fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.5 }}><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 .49-3.21" /></svg>
-                  hover to flip
-                </div>
-              </div>
-
-              {/* Back */}
-              <div className="card-face card-back" style={{ position: "absolute", width: "100%", height: "100%", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 48, textAlign: "center", background: "linear-gradient(135deg,#18161f 0%,#0f0e16 100%)", border: "1px solid rgba(124,110,247,0.3)", boxShadow: "0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(124,110,247,0.15),inset 0 1px 0 rgba(124,110,247,0.1)" }}>
-                <div style={{ ...chipStyle, background: "rgba(124,110,247,0.12)", borderColor: "rgba(124,110,247,0.3)" }}>Answer</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "rgba(124,110,247,0.7)", textTransform: "uppercase", marginBottom: 20 }}>Answer</div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "var(--violet-bright)", lineHeight: 1.5 }}>LTP is a persistent strengthening of synapses based on recent activity — the cellular mechanism underlying learning and memory in the hippocampus.</div>
-              </div>
-            </div>
-          </div>
+          <DemoFlashCard />
         </div>
 
         {/* bg grid */}
@@ -473,7 +550,7 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 80px" }}>
 
           {/* Feature 1 */}
-          <div className="reveal feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
+          <div className="reveal feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
             <div>
               <span style={featureNumberStyle}>01</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>}>Text Paste</Tag>
@@ -491,7 +568,7 @@ export default function Home() {
           </div>
 
           {/* Feature 2 */}
-          <div className="reveal feature-reverse feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
+          <div className="reveal feature-reverse feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
             <div>
               <span style={featureNumberStyle}>02</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>}>Quiz Mode</Tag>
@@ -509,7 +586,7 @@ export default function Home() {
           </div>
 
           {/* Feature 3 */}
-          <div className="reveal feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0" }}>
+          <div className="reveal feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0" }}>
             <div>
               <span style={featureNumberStyle}>03</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>}>Collections</Tag>
@@ -578,14 +655,14 @@ export default function Home() {
         </h2>
         <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7 }}>Generate your first AI-powered flashcard deck in under 30 seconds. No setup, no friction.</p>
         <div className="reveal" style={{ display: "flex", gap: 14, justifyContent: "center", alignItems: "center" }}>
-          <button onClick={login} style={{ height: 52, padding: "0 32px", background: "var(--violet)", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.25s" }}
+          <button onClick={login} className="home-cta-btn" style={{ height: 52, padding: "0 32px", background: "var(--violet)", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.25s" }}
             onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-bright)"; e.currentTarget.style.boxShadow = "0 0 48px rgba(124,110,247,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "var(--violet)"; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.transform = ""; }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
             Generate Free Deck
           </button>
-          <button style={{ height: 52, padding: "0 32px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", transition: "all 0.25s" }}
+          <button className="home-cta-btn" style={{ height: 52, padding: "0 32px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", transition: "all 0.25s" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-bright)"; e.currentTarget.style.color = "var(--text-primary)"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
           >View Pricing</button>
