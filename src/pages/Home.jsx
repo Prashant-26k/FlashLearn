@@ -184,12 +184,7 @@ const GLOBAL_CSS = `
   .feature-reverse { direction: rtl; }
   .feature-reverse > * { direction: ltr; }
 
-  @media (max-width: 768px) {
-    .hero-grid { grid-template-columns: 1fr !important; }
-    .hero-right { padding: 40px 16px 80px 16px !important; }
-    .feature-grid { grid-template-columns: 1fr !important; }
-    .feature-reverse { direction: ltr; }
-  }
+  /* Responsive rules are in index.css */
 `;
 
 function useScrollReveal() {
@@ -452,7 +447,7 @@ export default function Home() {
         transition: "all 0.4s ease",
       }}>
         <div className="home-nav-container" style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            display: 'flex', alignItems: 'center', width: '100%',
             padding: '14px 48px',
         }}>
             {/* Logo */}
@@ -460,10 +455,9 @@ export default function Home() {
               <span style={{ color: "var(--violet)" }}>Flash</span>Learn
             </div>
 
-            {/* Desktop nav */}
+            {/* Desktop nav — centered with flex:1 + justify:center */}
             <ul className="home-nav-desktop" style={{
-                display: 'flex', gap: 32, listStyle: 'none', margin: 0, padding: 0,
-                position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+                flex: 1, justifyContent: 'center', gap: 32, listStyle: 'none', margin: 0, padding: 0,
             }}>
               {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label]) => (
                 <li key={label}>
@@ -476,7 +470,7 @@ export default function Home() {
             </ul>
 
             {/* Desktop CTA */}
-            <div className="home-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="home-nav-desktop" style={{ alignItems: "center", gap: 12, flexShrink: 0 }}>
                 {isAuthenticated ? (
                     <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
                         Dashboard →
@@ -490,7 +484,7 @@ export default function Home() {
             </div>
 
             {/* Mobile: Sign in + Hamburger */}
-            <div className="home-nav-mobile" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="home-nav-mobile" style={{ alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
                 {isAuthenticated ? (
                     <button className="btn btn-secondary btn-sm" onClick={() => navigate('/dashboard')}>
                         Dashboard
@@ -567,7 +561,7 @@ export default function Home() {
             Generate intelligent flashcard decks from your notes, PDFs, and any topic — powered by Gemini AI. Retain more, study less.
           </p>
 
-          <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={login} className="home-cta-btn" style={heroPrimaryBtn}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
               Generate Free Deck
@@ -575,7 +569,7 @@ export default function Home() {
             <button className="home-cta-btn" style={heroSecondaryBtn}>Watch Demo ↗</button>
           </div>
 
-          <div className="hero-stats" style={{ display: "flex", gap: 32, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)" }}>
+          <div className="hero-stats" style={{ display: "flex", gap: 32, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
             {[["40", "K+", "Cards Generated"], ["4", "×", "Faster Retention"], ["98", "%", "Accuracy Rate"]].map(([val, suffix, label]) => (
               <div key={label}>
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: "var(--text-primary)", lineHeight: 1, marginBottom: 4 }}>
@@ -612,18 +606,18 @@ export default function Home() {
 
       {/* ── FEATURES ── */}
       <section id="features" style={{ padding: "140px 0", position: "relative" }}>
-        <div className="reveal" style={{ textAlign: "center", padding: "0 80px 80px" }}>
+        <div className="reveal home-features-header" style={{ textAlign: "center", padding: "0 80px 80px" }}>
           <span style={eyebrowStyle}>Four Ways to Generate</span>
           <h2 style={sectionTitleStyle}>Your Knowledge.<br />Any Source.</h2>
           <p style={sectionSubStyle}>FlashLearn transforms anything into study material — paste text, upload files, or just name a topic.</p>
         </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 80px" }}>
+        <div className="home-features-container" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 80px" }}>
 
           {/* Feature 1 */}
           <div className="reveal feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
             <div>
-              <span style={featureNumberStyle}>01</span>
+              <span className="feature-number" style={featureNumberStyle}>01</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>}>Text Paste</Tag>
               <h3 style={featureTitleStyle}>Paste.<br />Generate.<br />Done.</h3>
               <p style={featureDescStyle}>Drop in your lecture notes, textbook excerpts, or any body of text. Our AI identifies key concepts and crafts precise question-answer pairs in seconds.</p>
@@ -641,7 +635,7 @@ export default function Home() {
           {/* Feature 2 */}
           <div className="reveal feature-reverse feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0", borderBottom: "1px solid var(--border)" }}>
             <div>
-              <span style={featureNumberStyle}>02</span>
+              <span className="feature-number" style={featureNumberStyle}>02</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>}>Quiz Mode</Tag>
               <h3 style={featureTitleStyle}>Test Your<br />Knowledge.</h3>
               <p style={featureDescStyle}>Take multiple-choice or typed-answer quizzes across any deck combination. Timer mode, instant feedback, and detailed result reviews keep you sharp.</p>
@@ -659,7 +653,7 @@ export default function Home() {
           {/* Feature 3 */}
           <div className="reveal feature-grid home-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", minHeight: "80vh", padding: "80px 0" }}>
             <div>
-              <span style={featureNumberStyle}>03</span>
+              <span className="feature-number" style={featureNumberStyle}>03</span>
               <Tag icon={<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>}>Collections</Tag>
               <h3 style={featureTitleStyle}>Organize<br />Everything.</h3>
               <p style={featureDescStyle}>Group your decks into curated collections — by subject, semester, or study goal. Keep your entire knowledge library structured and instantly accessible.</p>
@@ -741,11 +735,11 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ padding: "48px 80px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--charcoal)" }}>
+      <footer style={{ padding: "48px 80px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--charcoal)", flexWrap: "wrap", gap: 16 }}>
         <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: "0.05em" }}>
           <span style={{ color: "var(--violet)" }}>Flash</span>Learn
         </div>
-        <ul style={{ display: "flex", gap: 28, listStyle: "none" }}>
+        <ul style={{ display: "flex", gap: 28, listStyle: "none", flexWrap: "wrap" }}>
           {["Privacy", "Terms", "Contact", "GitHub"].map(link => (
             <li key={link}>
               <a href="#" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", textTransform: "uppercase", transition: "color 0.2s" }}

@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: wrap !important;
+  }
+
+  p {
+    text-wrap: wrap !important;
+  }
+}
+
+:root {
+  --bg-base: #0F0F10;
+  --bg-surface: #161618;
+  --bg-elevated: #1E1E21;
+  --border-subtle: #2A2A2E;
+  --border-active: #3D3D44;
+  --text-primary: #F0F0F2;
+  --text-secondary: #8A8A96;
+  --text-muted: #52525C;
+  --accent: #5E6AD2;
+  --accent-hover: #7B84E0;
+  --accent-glow: rgba(94, 106, 210, 0.15);
+  --success: #4CAF82;
+  --warning: #E8A320;
+  --danger: #E05252;
+  --danger-hover: #E87070;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 99px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-hero: 48px;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override Tailwind v4 Preflight text-wrap balance/pretty */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+div {
+  text-wrap: wrap;
+}
+
+select {
+  min-width: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
