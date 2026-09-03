@@ -119,7 +119,7 @@ async function start() {
         
         // ── Render Keep-Alive Ping Mechanism ──
         const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-        const PING_INTERVAL = 5 * 60 * 1000; // 5 minutes
+        const PING_INTERVAL = 10 * 60 * 1000; // 5 minutes
 
         setInterval(async () => {
             try {
