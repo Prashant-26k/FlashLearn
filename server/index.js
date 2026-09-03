@@ -116,6 +116,19 @@ async function start() {
 
     app.listen(PORT, () => {
         console.log(`✓ FlashLearn server running on http://localhost:${PORT}`);
+        
+        // ── Render Keep-Alive Ping Mechanism ──
+        const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+        const PING_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${url}/api/health`);
+                console.log(`[${new Date().toISOString()}] Keep-alive ping to ${url}/api/health - Status: ${response.status}`);
+            } catch (error) {
+                console.error(`[${new Date().toISOString()}] Error pinging server:`, error.message);
+            }
+        }, PING_INTERVAL);
     });
 }
 
