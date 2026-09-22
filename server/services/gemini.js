@@ -10,15 +10,11 @@ function getGenAI() {
     return genAI;
 }
 
-// Use gemini-2.0-flash — stable model with no mandatory thinking mode.
-// gemini-2.5-flash enables thinking by default in SDK 0.24.x, which causes
-// response.text() to throw when thought blocks are present, resulting in 500s.
-const MODEL_NAME = 'gemini-2.0-flash';
-
-// Shared generation config — explicitly disable thinking to guarantee plain text output
-const GENERATION_CONFIG = {
-    thinkingConfig: { thinkingBudget: 0 },
-};
+// Use gemini-3.6-flash — the current stable recommended model.
+// gemini-1.5-flash and gemini-2.0-flash are both deprecated/removed.
+// gemini-2.5-flash enables thinking by default in SDK 0.24.x, causing
+// response.text() to throw when thought blocks are present (500 errors).
+const MODEL_NAME = 'gemini-3.6-flash';
 
 const FLASHCARD_RULES = `
 Rules for flashcards:
@@ -59,7 +55,7 @@ function parseCardsFromResponse(responseText) {
 
 export async function generateCardsFromText(text) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: MODEL_NAME, generationConfig: GENERATION_CONFIG });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `You are a flashcard generator. From the following study material, generate flashcards.
 ${FLASHCARD_RULES}
@@ -85,7 +81,7 @@ ${text.substring(0, 15000)}`;
 
 export async function generateCardsFromChunks(chunks) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: MODEL_NAME, generationConfig: GENERATION_CONFIG });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const chunkRequests = chunks.map(async (chunk, index) => {
         const prompt = `You are a flashcard generator. From the following section of study material, generate flashcards.
@@ -119,7 +115,7 @@ ${chunk}`;
 
 export async function generateCardsFromTopic(topic) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: MODEL_NAME, generationConfig: GENERATION_CONFIG });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `You are a flashcard generator. Create 10-15 educational flashcards about the topic: "${topic}".
 ${FLASHCARD_RULES}
