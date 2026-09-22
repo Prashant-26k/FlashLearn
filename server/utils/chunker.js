@@ -5,7 +5,7 @@
  * @param {number} maxChunks - Maximum number of chunks to prevent excessive AI calls.
  * @returns {string[]} Array of text chunks.
  */
-export function chunkText(text, size = 3000, maxChunks = 10) {
+export function chunkText(text, size = 3000, maxChunks = 20) {
     if (!text) return [];
 
     const chunks = [];

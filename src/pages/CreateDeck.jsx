@@ -22,7 +22,7 @@ export default function CreateDeck() {
     const [flipped, setFlipped] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [fileName, setFileName] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [deckId, setDeckId] = useState(null);
 
     // Preferences for Autosave
@@ -136,9 +136,18 @@ export default function CreateDeck() {
     };
 
     const handleFileUpload = async () => {
-        if (!selectedFile) return toast.error('Please select a file');
+        const files = selectedFiles.length ? selectedFiles : [];
+        if (!files.length) return toast.error('Please select at least one file');
+
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        files.forEach((file) => {
+            formData.append('files', file);
+        });
+
+        if (files.length === 1) {
+            formData.append('file', files[0]);
+        }
+
         setGenerating(true);
         try {
             const res = await api.post('/api/generate/file', formData, {
@@ -146,7 +155,9 @@ export default function CreateDeck() {
             });
             setCards(res.data.cards || []);
             setCurrentCard(0);
-            toast.success(`Generated ${res.data.cards?.length || 0} cards`);
+            toast.success(res.data.warnings?.length
+                ? `Generated ${res.data.cards?.length || 0} cards. Some sections could not be processed.`
+                : `Generated ${res.data.cards?.length || 0} cards`);
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to generate cards');
         }
@@ -195,12 +206,16 @@ export default function CreateDeck() {
         if (currentCard >= newCards.length) setCurrentCard(Math.max(0, newCards.length - 1));
     };
 
-    const handleFileDrop = (e, accept) => {
+    const handleFileDrop = (e) => {
         e.preventDefault();
-        const file = e.dataTransfer?.files[0] || e.target.files[0];
-        if (file) {
-            setSelectedFile(file);
-            setFileName(file.name);
+        const incomingFiles = Array.from(e.dataTransfer?.files || e.target.files || []);
+        if (!incomingFiles.length) return;
+
+        setSelectedFiles(incomingFiles);
+        setFileName(incomingFiles.map(file => file.name).join(', '));
+
+        if (e.target && 'value' in e.target) {
+            e.target.value = '';
         }
     };
 
@@ -235,7 +250,11 @@ export default function CreateDeck() {
                             <button
                                 key={tab}
                                 className={`tab-item ${activeTab === i ? 'active' : ''}`}
-                                onClick={() => setActiveTab(i)}
+                                onClick={() => {
+                                    setActiveTab(i);
+                                    setSelectedFiles([]);
+                                    setFileName('');
+                                }}
                             >
                                 {tab}
                             </button>
@@ -267,26 +286,27 @@ export default function CreateDeck() {
                             <div
                                 className={`upload-zone`}
                                 onClick={() => fileRef.current?.click()}
-                                onDrop={(e) => { e.preventDefault(); handleFileDrop(e, '.pdf'); }}
+                                onDrop={(e) => { e.preventDefault(); handleFileDrop(e); }}
                                 onDragOver={(e) => e.preventDefault()}
                             >
                                 <input
                                     ref={fileRef}
                                     type="file"
                                     accept=".pdf"
+                                    multiple
                                     style={{ display: 'none' }}
                                     onChange={(e) => handleFileDrop(e)}
                                 />
                                 <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.3 }}>📄</div>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                                    {fileName || 'Drag PDF here or click to browse'}
+                                    {fileName || 'Drag PDF files here or click to browse'}
                                 </p>
                             </div>
                             <button
                                 className="btn btn-primary btn-full"
                                 style={{ marginTop: 16 }}
                                 onClick={handleFileUpload}
-                                disabled={generating || !selectedFile}
+                                disabled={generating || !selectedFiles.length}
                             >
                                 {generating ? 'Generating...' : 'Generate Cards'}
                             </button>
@@ -305,19 +325,20 @@ export default function CreateDeck() {
                                     ref={fileRef}
                                     type="file"
                                     accept=".docx"
+                                    multiple
                                     style={{ display: 'none' }}
                                     onChange={(e) => handleFileDrop(e)}
                                 />
                                 <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.3 }}>📝</div>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                                    {fileName || 'Drag Word file here or click to browse'}
+                                    {fileName || 'Drag Word files here or click to browse'}
                                 </p>
                             </div>
                             <button
                                 className="btn btn-primary btn-full"
                                 style={{ marginTop: 16 }}
                                 onClick={handleFileUpload}
-                                disabled={generating || !selectedFile}
+                                disabled={generating || !selectedFiles.length}
                             >
                                 {generating ? 'Generating...' : 'Generate Cards'}
                             </button>
