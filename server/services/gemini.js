@@ -10,6 +10,12 @@ function getGenAI() {
     return genAI;
 }
 
+// Use gemini-3.6-flash — the current stable recommended model.
+// gemini-1.5-flash and gemini-2.0-flash are both deprecated/removed.
+// gemini-2.5-flash enables thinking by default in SDK 0.24.x, causing
+// response.text() to throw when thought blocks are present (500 errors).
+const MODEL_NAME = 'gemini-3.6-flash';
+
 const FLASHCARD_RULES = `
 Rules for flashcards:
 - Each flashcard must include: "question" and "answer".
@@ -33,9 +39,23 @@ Example:
 ]
 `;
 
+/**
+ * Safely extracts and parses JSON from a Gemini response string.
+ * Strips markdown fences and leading/trailing whitespace before parsing.
+ */
+function parseCardsFromResponse(responseText) {
+    const cleaned = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+    const cards = JSON.parse(cleaned);
+    if (!Array.isArray(cards)) throw new Error('AI returned invalid format — expected a JSON array');
+    return cards.filter(c => c.question && c.answer);
+}
+
 export async function generateCardsFromText(text) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `You are a flashcard generator. From the following study material, generate flashcards.
 ${FLASHCARD_RULES}
@@ -47,18 +67,11 @@ ${text.substring(0, 15000)}`;
 
     try {
         const result = await model.generateContent(prompt);
-        const response = result.response.text();
-        const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        const cards = JSON.parse(cleaned);
-
-        if (!Array.isArray(cards)) throw new Error('AI returned invalid format');
-
-        const filteredCards = cards.filter(c => c.question && c.answer);
+        const filteredCards = parseCardsFromResponse(result.response.text());
         logger.info(`Generated ${filteredCards.length} cards from text`, {
             textLength: text.length,
             cardCount: filteredCards.length
         });
-
         return filteredCards;
     } catch (err) {
         logger.error('Gemini generation error (text):', { error: err.message, stack: err.stack });
@@ -68,7 +81,7 @@ ${text.substring(0, 15000)}`;
 
 export async function generateCardsFromChunks(chunks) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const chunkRequests = chunks.map(async (chunk, index) => {
         const prompt = `You are a flashcard generator. From the following section of study material, generate flashcards.
@@ -81,9 +94,7 @@ ${chunk}`;
 
         try {
             const result = await model.generateContent(prompt);
-            const response = result.response.text();
-            const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-            return JSON.parse(cleaned);
+            return parseCardsFromResponse(result.response.text());
         } catch (err) {
             logger.warn(`Failed to generate cards for chunk ${index}:`, { error: err.message });
             return [];
@@ -92,8 +103,6 @@ ${chunk}`;
 
     const results = await Promise.all(chunkRequests);
     const mergedCards = results.flat().filter(c => c.question && c.answer);
-
-    // Simple deduplication or limiting
     const finalCards = mergedCards.slice(0, 50); // Hard limit for merged results
 
     logger.info(`Generated ${finalCards.length} cards from ${chunks.length} chunks`, {
@@ -106,7 +115,7 @@ ${chunk}`;
 
 export async function generateCardsFromTopic(topic) {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = ai.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `You are a flashcard generator. Create 10-15 educational flashcards about the topic: "${topic}".
 ${FLASHCARD_RULES}
@@ -114,15 +123,8 @@ ${JSON_FORMAT_INSTRUCTION}`;
 
     try {
         const result = await model.generateContent(prompt);
-        const response = result.response.text();
-        const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        const cards = JSON.parse(cleaned);
-
-        if (!Array.isArray(cards)) throw new Error('AI returned invalid format');
-
-        const filteredCards = cards.filter(c => c.question && c.answer);
+        const filteredCards = parseCardsFromResponse(result.response.text());
         logger.info(`Generated ${filteredCards.length} cards for topic: ${topic}`);
-
         return filteredCards;
     } catch (err) {
         logger.error('Gemini generation error (topic):', { error: err.message, topic });
