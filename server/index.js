@@ -8,6 +8,7 @@ import User from './models/User.js';
 import authMiddleware from './middleware/auth.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from './utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,4 +133,24 @@ async function start() {
     });
 }
 
+// ── Global Error Handler ──
+// Express 5 auto-forwards async route errors here. Without this, Express
+// sends its default text/html 500 page instead of a JSON response.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+    logger.error('Unhandled server error:', {
+        message: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+    });
+    const status = err.status || err.statusCode || 500;
+    res.status(status).json({
+        error: process.env.NODE_ENV === 'production'
+            ? 'An internal server error occurred'
+            : err.message,
+    });
+});
+
 start();
+
