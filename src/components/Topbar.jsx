@@ -22,7 +22,7 @@ export default function Topbar({ onMenuToggle }) {
         <header className="topbar">
             {/* Left: Hamburger (mobile) + Logo */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* Hamburger - only visible on mobile via CSS */}
+                {/* Hamburger — shown via CSS on mobile only */}
                 <button
                     className="hamburger-btn"
                     onClick={onMenuToggle}
@@ -32,24 +32,21 @@ export default function Topbar({ onMenuToggle }) {
                         border: 'none',
                         cursor: 'pointer',
                         padding: '6px',
-                        display: 'none', // shown via CSS on mobile
-                        flexDirection: 'column',
-                        justifyContent: 'center',
+                        display: 'none',       // shown via CSS on mobile
                         alignItems: 'center',
-                        gap: '5px',
+                        justifyContent: 'center',
                         borderRadius: 'var(--radius-sm)',
-                        transition: 'background 150ms ease',
+                        color: 'var(--text-secondary)',
+                        transition: 'color 150ms ease',
                     }}
                 >
-                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
-                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
-                    <span style={{ display: 'block', width: 20, height: 2, background: 'var(--text-primary)', borderRadius: 1 }} />
+                    <span className="material-symbols-outlined" style={{ fontSize: 24 }}>menu</span>
                 </button>
 
                 {/* Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 18 }}>Flash</span>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18 }}>Learn</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 17, letterSpacing: '-0.03em' }}>Flash</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 17, letterSpacing: '-0.03em' }}>Learn</span>
                 </div>
             </div>
 
@@ -61,19 +58,26 @@ export default function Topbar({ onMenuToggle }) {
                         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                         display: 'flex', alignItems: 'center',
                     }}
+                    aria-label="User menu"
                 >
                     {user?.avatar ? (
                         <img
                             src={user.avatar}
                             alt={user.displayName}
-                            style={{ width: 32, height: 32, borderRadius: '50%' }}
+                            style={{
+                                width: 34, height: 34, borderRadius: '50%',
+                                ring: '2px', ringColor: 'rgba(75,43,238,0.3)',
+                                boxShadow: '0 0 0 2px rgba(75,43,238,0.25)',
+                            }}
                             referrerPolicy="no-referrer"
                         />
                     ) : (
                         <div style={{
-                            width: 32, height: 32, borderRadius: '50%', background: 'var(--accent)',
+                            width: 34, height: 34, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #7c6af5, #4b2bee)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 'var(--text-sm)', fontWeight: 600, color: '#fff',
+                            fontSize: 'var(--text-sm)', fontWeight: 700, color: '#fff',
+                            boxShadow: '0 0 0 2px rgba(75,43,238,0.25)',
                         }}>
                             {user?.displayName?.[0] || 'U'}
                         </div>
@@ -81,9 +85,9 @@ export default function Topbar({ onMenuToggle }) {
                 </button>
 
                 {showDropdown && (
-                    <div className="dropdown">
-                        <div style={{ padding: '8px 12px' }}>
-                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <div className="dropdown" style={{ minWidth: 220 }}>
+                        <div style={{ padding: '10px 14px' }}>
+                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
                                 {user?.displayName || 'User'}
                             </div>
                             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 2 }}>
@@ -91,12 +95,19 @@ export default function Topbar({ onMenuToggle }) {
                             </div>
                         </div>
                         <div className="dropdown-divider" />
-                        <button className="dropdown-item" onClick={() => { navigate('/profile'); setShowDropdown(false); }} style={{ paddingLeft: '32px', position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '12px', fontSize: '14px' }}>👤</span>
-                            My Profile
+                        <button
+                            className="dropdown-item"
+                            onClick={() => { navigate('/settings'); setShowDropdown(false); }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>settings</span>
+                            Settings
                         </button>
-                        <button className="dropdown-item danger" onClick={logout} style={{ paddingLeft: '32px', position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '12px', fontSize: '14px' }}>⏻</span>
+                        <div className="dropdown-divider" />
+                        <button
+                            className="dropdown-item danger"
+                            onClick={() => { logout(); setShowDropdown(false); }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
                             Sign Out
                         </button>
                     </div>

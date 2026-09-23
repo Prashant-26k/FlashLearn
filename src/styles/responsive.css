@@ -2,31 +2,17 @@
    RESPONSIVE / MOBILE STYLES
    ═══════════════════════════════════════════ */
 
-/* ── Hamburger button: hidden on desktop, visible on mobile ── */
+/* ── Desktop-only sidebar; mobile uses bottom navigation ── */
 @media (max-width: 768px) {
-  .hamburger-btn {
-    display: flex !important;
-  }
-
-  .sidebar-overlay {
-    display: block !important;
-  }
-}
-
-/* ── Sidebar: off-canvas on mobile ── */
-.sidebar {
-  transform: translateX(-100%);
-  transition: transform 0.25s ease;
-}
-
-@media (min-width: 769px) {
   .sidebar {
-    transform: translateX(0) !important;
+    display: none;
   }
-}
 
-.sidebar.open {
-  transform: translateX(0);
+  .sidebar-overlay,
+  .hamburger-btn,
+  .sidebar-collapse-btn {
+    display: none !important;
+  }
 }
 
 /* ── Topbar: full-width on mobile ── */
@@ -38,8 +24,76 @@
 
   .main-content {
     margin-left: 0 !important;
-    padding: 16px !important;
+    padding: 16px 16px 88px !important;
   }
+
+  .sidebar-new-deck {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar {
+    display: flex;
+    transform: translateX(0) !important;
+  }
+
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+/* ── Mobile bottom navigation ── */
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 64px;
+  padding: 6px 8px max(6px, env(safe-area-inset-bottom));
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 4px;
+  background: rgba(18, 18, 18, 0.96);
+  border-top: 1px solid var(--border-subtle);
+  backdrop-filter: blur(16px);
+  z-index: 150;
+}
+
+.mobile-nav-item {
+  min-width: 52px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.mobile-nav-item.active {
+  color: var(--text-primary);
+  background: rgba(75, 43, 238, 0.16);
+}
+
+.mobile-nav-item.mobile-nav-create {
+  color: #fff;
+  background: var(--accent);
+}
+
+.mobile-nav-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 /* ── CreateDeck: two-panel → single column ── */

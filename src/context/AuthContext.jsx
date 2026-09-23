@@ -1,41 +1,40 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
+function readStoredUser() {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const token = params.get('token');
+    if (token) {
+        localStorage.setItem('flashlearn_token', token);
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    const storedToken = localStorage.getItem('flashlearn_token');
+    if (!storedToken) return null;
+
+    try {
+        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+        return {
+            userId: payload.userId,
+            displayName: payload.displayName,
+            email: payload.email,
+            avatar: payload.avatar,
+        };
+    } catch {
+        localStorage.removeItem('flashlearn_token');
+        return null;
+    }
+}
+
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // Check for token in URL (OAuth callback)
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        if (token) {
-            localStorage.setItem('flashlearn_token', token);
-            window.history.replaceState({}, '', '/');
-        }
-
-        // Load user from stored token
-        const storedToken = localStorage.getItem('flashlearn_token');
-        if (storedToken) {
-            try {
-                const payload = JSON.parse(atob(storedToken.split('.')[1]));
-                setUser({
-                    userId: payload.userId,
-                    displayName: payload.displayName,
-                    email: payload.email,
-                    avatar: payload.avatar,
-                });
-            } catch {
-                localStorage.removeItem('flashlearn_token');
-            }
-        }
-        setLoading(false);
-    }, []);
+    const [user, setUser] = useState(readStoredUser);
+    const loading = false;
 
     const login = () => {
-        window.location.href = 'https://flashlearn-7ayp.onrender.com/auth/google';
+        const authBaseUrl = (import.meta.env.VITE_AUTH_BASE_URL || '').replace(/\/$/, '');
+        window.location.href = `${authBaseUrl}/auth/google`;
     };
 
     const logout = async () => {
@@ -46,7 +45,7 @@ export function AuthProvider({ children }) {
         }
         localStorage.removeItem('flashlearn_token');
         setUser(null);
-        window.location.href = '/';
+        window.location.replace('/');
     };
 
     return (
