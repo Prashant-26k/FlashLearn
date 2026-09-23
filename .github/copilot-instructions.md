@@ -1,46 +1,80 @@
 # FlashLearn — AI Agent & Developer Guidelines
 
-You are an AI assistant working on the **FlashLearn** codebase. You must follow the repository's Git workflow and engineering standards without exception.
+You are an AI assistant working on the **FlashLearn** codebase. You must follow the repository's Git workflow, multi-worktree safety rules, and engineering standards without exception.
 
 ---
 
-## Mandatory Git & Branching Rules
+## 1. Protected Branch & PR Rules
 
-1. **Production Branch**: `main` is the production branch. **NEVER** commit or push directly to `main`.
-2. **Integration Branch**: `develop` is the integration branch. **NEVER** commit or push directly to `develop`.
-3. **Branch from `develop`**: All new work (features, bug fixes, refactoring, chores) MUST start from `develop`.
-4. **Dedicated Branch Prefixes**:
-   - `feature/<name>` for new features
-   - `fix/<name>` for bug fixes
-   - `refactor/<name>` for refactoring
-   - `chore/<name>` for maintenance, configs, or docs
-5. **No Cross-Agent Contamination**:
-   - **NEVER** use another agent's branch or worktree for new work.
-   - **NEVER** delete, overwrite, or discard another worktree's uncommitted changes.
-6. **No History Rewrites / No Force-Push**:
-   - **NEVER** run `git push --force` or `git push --force-with-lease`.
-   - **NEVER** run `git reset --hard` on shared branches.
-   - **NEVER** rebase public/shared branches (`main`, `develop`).
-7. **Pull Request Workflow**:
-   - Feature/fix branches merge into `develop` via Pull Requests.
-   - `develop` merges into `main` via Pull Requests after testing.
-8. **Conventional Commits**:
-   - All commit messages must follow: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`.
+1. **Production Branch**: `main` represents deployed production code. **NEVER** commit or push directly to `main`.
+2. **Integration Branch**: `develop` is the shared integration baseline. **NEVER** commit or push directly to `develop`.
+3. **All New Work Starts from `origin/develop`**:
+   - Always base new work branches on the latest `origin/develop`.
+4. **Consistent PR Flow**:
+   - `feature/*` → `develop` via Pull Request
+   - `fix/*` → `develop` via Pull Request
+   - `refactor/*` → `develop` via Pull Request
+   - `chore/*` → `develop` via Pull Request
+   - `develop` → `main` via formal release Pull Request
 
 ---
 
-## Agent Execution Checklist
+## 2. Multi-Worktree Safety & Uncommitted Work Protection
+
+FlashLearn uses Git worktrees for parallel agent development. Protect active work across all sessions:
+
+1. **NEVER switch another agent's worktree**:
+   - Never run `git switch`, `git checkout`, `reset`, `restore`, `clean`, or state-changing commands inside another agent's worktree.
+   - Do NOT run `git switch develop` inside an arbitrary or current worktree to start a task.
+2. **Dedicated Branch & Worktree Creation**:
+   - For a new task, prefer creating a dedicated worktree and branch from latest remote `origin/develop`:
+     ```bash
+     git fetch origin
+     git worktree add -b <type>/<name> <new-worktree-path> origin/develop
+     ```
+   - Types: `feature/<name>`, `fix/<name>`, `refactor/<name>`, `chore/<name>`.
+   - If working in an isolated worktree without creating a new directory, create the branch directly from `origin/develop` only after verifying the worktree is not in use and has no uncommitted work.
+3. **Prohibited Destructive Operations**:
+   The following commands are strictly forbidden unless the user explicitly authorizes them:
+   - `git reset --hard`
+   - `git clean -fd` / `git clean -fdx`
+   - `git restore .`
+   - `git checkout -- .`
+   - `git branch -D`
+   - `git worktree remove --force`
+   - `git push --force` / `git push --force-with-lease`
+4. **Unclear Changes**:
+   - If uncommitted changes are detected in the current worktree and their ownership is unclear: **STOP and ask for clarification**.
+   - Do NOT modify, stash, reset, restore, or commit unrelated changes.
+
+---
+
+## 3. Agent Execution Checklist
 
 ### Before Starting Any Work
-1. Run `git status`, `git branch -a -v`, and `git worktree list` to inspect current state.
-2. Ensure you are not touching uncommitted work from another worktree or agent.
-3. Fetch latest changes: `git fetch origin`.
-4. Ensure your base is up to date: `git switch develop` && `git merge --ff-only origin/develop`.
-5. Create a dedicated branch: `git switch -c <type>/<name> develop`.
+1. Run pre-flight inspection:
+   ```bash
+   git status --short
+   git branch --show-current
+   git worktree list
+   ```
+2. If the current worktree contains changes not belonging to your task, do not touch them. Use a separate worktree instead.
+3. Fetch latest origin: `git fetch origin`.
+4. Create your task branch from `origin/develop`.
 
-### Before Submitting / Finishing Work
-1. Verify the project builds: `npm run build`.
-2. Run linter: `npm run lint`. Ensure 0 errors.
-3. Commit with a clear Conventional Commit message: `git commit -m "<type>: <description>"`.
-4. Push the branch: `git push -u origin <type>/<name>`.
-5. Prepare or open a PR targeting `develop`.
+### Commit & Validation Standards
+1. **Selective Staging**: Stage only files belonging to the current task. Never blindly run `git add .` when unrelated changes might exist.
+2. **Review Changes**: Inspect before committing:
+   ```bash
+   git status
+   git diff
+   git diff --cached
+   ```
+3. **Conventional Commits**: Format commit messages as `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`.
+4. **Validation**:
+   - Run `npm run build` (must pass with 0 errors).
+   - Run `npm run lint` (must pass with 0 errors).
+   - Run tests if an automated test suite is configured.
+5. **Push & PR**:
+   - Push your branch: `git push -u origin <branch-name>`.
+   - Prepare/open a Pull Request targeting **`develop`**.
