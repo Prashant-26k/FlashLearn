@@ -1,0 +1,1795 @@
+/* ==========================================================================
+   Stitch Design System CSS
+   Electric Dark Minimalist — FlashLearn
+   All Stitch-specific styles scoped to .app-layout and .stitch-* classes
+   ========================================================================== */
+
+/* ── Material Symbols baseline fix ── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 20px;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* Active/filled icon variant */
+.icon-filled {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── App layout surface overrides (authenticated) ── */
+.app-layout {
+  --bg-base:      #0a0a0a;
+  --bg-surface:   #121212;
+  --bg-elevated:  #1e1e1e;
+  --border-subtle: #2a2a2a;
+  --border-active: #454545;
+  --text-primary:  #ffffff;
+  --text-secondary: #d4d4d8;
+  --text-muted:    #a1a1aa;
+  --accent:        #4b2bee;
+  --accent-hover:  #6448f2;
+  --accent-glow:   rgba(75, 43, 238, 0.18);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  background: var(--bg-base);
+}
+
+/* ── Sidebar ── */
+.app-layout .sidebar {
+  background: #111114;
+  border-color: var(--border-subtle);
+  padding: 20px 14px;
+}
+
+.app-layout .sidebar-new-deck {
+  height: 42px;
+  border-radius: 9px;
+  margin-bottom: 26px;
+  font-weight: 600;
+}
+
+.app-layout .nav-item {
+  height: 42px;
+  border-radius: 9px;
+  color: var(--text-muted);
+  gap: 12px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.app-layout .nav-item:hover {
+  background: #1b1b21;
+  color: var(--text-primary);
+}
+
+.app-layout .nav-item.active {
+  background: rgba(75, 43, 238, 0.14);
+  border-left: 0;
+  color: #cfc7ff;
+  padding-left: 12px;
+}
+
+.nav-item .nav-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+/* ── Topbar ── */
+.app-layout .topbar {
+  background: rgba(15,15,18,0.94);
+  border-color: var(--border-subtle);
+  height: 68px;
+  backdrop-filter: blur(16px);
+}
+
+/* ── Main Content ── */
+.app-layout .main-content {
+  padding: 36px clamp(18px, 4vw, 56px);
+}
+
+@media (max-width: 768px) {
+  .app-layout .main-content {
+    padding: 24px 16px 88px;
+  }
+}
+
+/* ── Buttons ── */
+.app-layout .btn {
+  border-radius: 9px;
+  height: 40px;
+  letter-spacing: -0.01em;
+}
+
+.app-layout .btn-primary {
+  box-shadow: 0 5px 18px rgba(75,43,238,0.2);
+}
+
+.app-layout .btn-primary:hover {
+  box-shadow: 0 8px 24px rgba(75,43,238,0.35);
+}
+
+.app-layout .btn-secondary {
+  background: #17171c;
+  border-color: var(--border-subtle);
+}
+
+.app-layout .btn-danger {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+}
+
+.app-layout .btn-danger:hover {
+  background: rgba(248, 113, 113, 0.25);
+}
+
+/* ── Inputs ── */
+.app-layout .input,
+.app-layout .select,
+.app-layout .textarea {
+  background: #17171c;
+  border-color: var(--border-subtle);
+  border-radius: 9px;
+  min-height: 42px;
+}
+
+.app-layout .input:focus,
+.app-layout .select:focus,
+.app-layout .textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(75, 43, 238, 0.15);
+}
+
+/* ── Cards ── */
+.app-layout .deck-card {
+  background: #17171c;
+  border-color: var(--border-subtle);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.app-layout .deck-card:hover {
+  border-color: rgba(75, 43, 238, 0.5);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+/* ── Badge ── */
+.app-layout .badge {
+  background: rgba(75, 43, 238, 0.12);
+  color: #bcb4ef;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Pill Tabs ── */
+.app-layout .pill-tabs {
+  margin: 0 0 28px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 9px;
+  gap: 6px;
+}
+
+.app-layout .pill-tab {
+  border-radius: 8px;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.app-layout .pill-tab.active {
+  background: rgba(75,43,238,0.16);
+  color: #ddd7ff;
+  border-color: rgba(75,43,238,0.3);
+}
+
+/* ── Dropdown ── */
+.app-layout .dropdown {
+  background: #1b1b21;
+  border-color: var(--border-active);
+}
+
+/* ── Toggle Switch (Stitch style) ── */
+.stitch-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.stitch-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.stitch-toggle-track {
+  width: 44px;
+  height: 24px;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  transition: background 150ms ease, border-color 150ms ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.stitch-toggle input:checked + .stitch-toggle-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.stitch-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 150ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.stitch-toggle input:checked ~ .stitch-toggle-track .stitch-toggle-thumb,
+.stitch-toggle input:checked + .stitch-toggle-track + .stitch-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Mobile Bottom Navigation ── */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  justify-content: space-around;
+  align-items: stretch;
+  height: 68px;
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+}
+
+.mobile-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 150ms ease;
+  padding: 0;
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+}
+
+.mobile-nav-item:hover {
+  color: var(--text-primary);
+}
+
+.mobile-nav-item.active {
+  color: var(--accent);
+}
+
+.mobile-nav-item .material-symbols-outlined {
+  font-size: 24px;
+  transition: font-variation-settings 150ms ease;
+}
+
+.mobile-nav-item.active .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Stitch Screen Colors ── */
+.stitch-screen {
+  --stitch-card: #141417;
+  --stitch-card-raised: #1c1c21;
+  --stitch-border: rgba(255,255,255,0.08);
+  color: #f4f3f8;
+}
+
+.stitch-screen h1,
+.stitch-screen h2,
+.stitch-screen h3 {
+  letter-spacing: -0.035em;
+}
+
+/* ── Login Page ── */
+.stitch-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  background: #0a0a0a;
+  color: #f5f5f7;
+  font-family: var(--font-sans);
+}
+
+.stitch-login-glow {
+  position: absolute;
+  width: min(760px, 100vw);
+  height: 520px;
+  background: radial-gradient(ellipse, rgba(75,43,238,.17), transparent 68%);
+  pointer-events: none;
+}
+
+.stitch-login-card {
+  width: min(100%, 430px);
+  position: relative;
+  padding: 48px 42px;
+  text-align: center;
+  border: 1px solid #2a2a31;
+  border-radius: 18px;
+  background: rgba(21,21,25,.92);
+  box-shadow: 0 24px 80px rgba(0,0,0,.32);
+}
+
+.stitch-login-brand {
+  font-size: 25px;
+  letter-spacing: -.04em;
+  margin-bottom: 38px;
+}
+
+.stitch-login-brand b { color: #8b7cff; }
+.stitch-login-brand span { color: #f5f5f7; }
+
+.stitch-login-card h1 {
+  font-size: 28px;
+  letter-spacing: -.04em;
+  margin-bottom: 8px;
+}
+
+.stitch-login-subtitle {
+  color: #8f8f9b;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.stitch-google-button {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  border: 1px solid #3a3a43;
+  border-radius: 10px;
+  color: #f5f5f7;
+  background: #1b1b21;
+  font: 500 14px var(--font-sans);
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+
+.stitch-google-button:hover {
+  background: #25252c;
+  border-color: #58586a;
+}
+
+.stitch-google-button:active {
+  transform: scale(.99);
+}
+
+.stitch-login-legal {
+  color: #777783;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 24px;
+}
+
+.stitch-login-legal a {
+  color: #aaa1f0;
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .stitch-login-card { padding: 38px 24px; }
+}
+
+/* ── Dashboard KPI Card ── */
+.stitch-kpi-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.stitch-kpi-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stitch-kpi-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stitch-kpi-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.stitch-kpi-stat-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Dashboard Gauge Card ── */
+.stitch-gauge-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: border-color 200ms ease;
+  user-select: none;
+}
+
+.stitch-gauge-card:hover {
+  border-color: rgba(75, 43, 238, 0.4);
+}
+
+.stitch-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 300ms ease;
+}
+
+.stitch-gauge-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 300ms ease;
+}
+
+.stitch-gauge-card:hover .stitch-gauge-center,
+.stitch-gauge-card:active .stitch-gauge-center {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.stitch-gauge-card:hover .stitch-gauge-hover,
+.stitch-gauge-card:active .stitch-gauge-hover {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Dashboard Streak Card ── */
+.stitch-streak-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+/* ── Activity Heatmap ── */
+.stitch-heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.stitch-heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.stitch-heatmap-cell-empty {
+  background: #1e1e24;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.stitch-heatmap-cell-low {
+  background: rgba(75, 43, 238, 0.25);
+}
+
+.stitch-heatmap-cell-mid {
+  background: rgba(75, 43, 238, 0.55);
+}
+
+.stitch-heatmap-cell-high {
+  background: rgba(75, 43, 238, 0.8);
+}
+
+.stitch-heatmap-cell-peak {
+  background: #4b2bee;
+  box-shadow: 0 0 6px rgba(75, 43, 238, 0.6);
+}
+
+/* ── Quick Action Buttons ── */
+.stitch-quick-action-primary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4b2bee, rgba(75,43,238,0.8));
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  transition: opacity 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 4px 16px rgba(75,43,238,0.25);
+}
+
+.stitch-quick-action-primary:hover {
+  opacity: 0.92;
+  box-shadow: 0 6px 24px rgba(75,43,238,0.4);
+}
+
+.stitch-quick-action-secondary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.stitch-quick-action-secondary:hover {
+  background: #1e1e24;
+  border-color: rgba(75,43,238,0.4);
+}
+
+/* ── Dashboard Recent Deck Item ── */
+.stitch-recent-deck-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.stitch-recent-deck-item:hover {
+  border-color: rgba(75,43,238,0.4);
+  background: #1c1c22;
+}
+
+.stitch-deck-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(75,43,238,0.12);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+/* ── My Decks Grid Card ── */
+.stitch-deck-grid-card {
+  display: flex;
+  flex-direction: column;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.stitch-deck-grid-card:hover {
+  border-color: rgba(75,43,238,0.5);
+  transform: translateY(-2px);
+}
+
+.stitch-deck-grid-card-body {
+  padding: 16px;
+  flex: 1;
+}
+
+.stitch-deck-grid-card-footer {
+  padding: 12px 16px 16px;
+}
+
+.stitch-deck-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.stitch-mastery-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.stitch-mastery-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 500ms ease;
+}
+
+/* ── Search Row ── */
+.stitch-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: #17171c;
+  margin-bottom: 20px;
+  transition: border-color 150ms ease;
+}
+
+.stitch-search-row:focus-within {
+  border-color: var(--accent);
+}
+
+.stitch-search-row .material-symbols-outlined {
+  color: var(--text-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.stitch-search-row .input {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-height: auto;
+  border-radius: 0;
+}
+
+/* ── Flashcard (Deck Study) ── */
+.stitch-flashcard-container {
+  background: #141417;
+  border: 1px solid #27272a;
+  border-radius: 20px;
+  padding: 28px 32px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 24px 56px rgba(0,0,0,0.3);
+  transition: all 150ms ease;
+}
+
+.stitch-flashcard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.stitch-question-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #202024;
+  border: 1px solid #2e2e33;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #c6c0ff;
+}
+
+.stitch-category-chip {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: #71717a;
+}
+
+.stitch-flashcard-question {
+  padding: 32px 0;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stitch-flashcard-question p {
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.stitch-flip-hint {
+  font-size: 11px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.stitch-flashcard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid #222226;
+}
+
+.stitch-flip-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: #222227;
+  border: 1px solid #2e2e36;
+  color: #d4d4d8;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+  font-family: var(--font-sans);
+}
+
+.stitch-flip-btn:hover {
+  background: #2c2c34;
+}
+
+/* ── Deck Study Nav Controls Card ── */
+.stitch-nav-controls {
+  background: #141417;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stitch-nav-controls .progress-bar {
+  height: 6px;
+  background: #202025;
+  border-radius: 99px;
+}
+
+.stitch-nav-controls .progress-fill {
+  background: var(--accent);
+  border-radius: 99px;
+}
+
+/* ── Deck Study Sidebar ── */
+.stitch-deck-sidebar {
+  background: #141417;
+  border: 1px solid #27272a;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 180px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+}
+
+.stitch-deck-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #27272a;
+  background: #111114;
+  flex-shrink: 0;
+}
+
+.stitch-deck-sidebar-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stitch-card-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  border: 1px solid transparent;
+}
+
+.stitch-card-item:hover {
+  background: #1c1c21;
+  border-color: #27272a;
+}
+
+.stitch-card-item.active {
+  background: rgba(75, 43, 238, 0.12);
+  border-left: 2px solid var(--accent);
+  border-color: rgba(75,43,238,0.25);
+}
+
+.stitch-card-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #202025;
+  color: #9ca3af;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.stitch-card-item.active .stitch-card-num {
+  background: var(--accent);
+  color: #fff;
+}
+
+.stitch-card-item-text {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.stitch-card-item.active .stitch-card-item-text {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ── Quiz Options (Stitch style) ── */
+.stitch-quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: #17171c;
+  cursor: pointer;
+  transition: all 150ms ease;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.stitch-quiz-option:hover:not(:disabled) {
+  border-color: rgba(75,43,238,0.5);
+  background: #1a1925;
+}
+
+.stitch-quiz-option.selected {
+  border: 2px solid var(--accent);
+  background: rgba(75,43,238,0.08);
+  box-shadow: 0 0 15px rgba(75,43,238,0.15);
+}
+
+.stitch-quiz-option.correct {
+  border: 2px solid #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.stitch-quiz-option.incorrect {
+  border: 2px solid #f87171;
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.stitch-quiz-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #4a4a5a;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+
+.stitch-quiz-option.selected .stitch-quiz-radio {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.stitch-quiz-option.correct .stitch-quiz-radio {
+  border-color: #34d399;
+  background: #34d399;
+}
+
+.stitch-quiz-option.incorrect .stitch-quiz-radio {
+  border-color: #f87171;
+  background: #f87171;
+}
+
+.stitch-quiz-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.stitch-quiz-option.selected .stitch-quiz-radio-dot,
+.stitch-quiz-option.correct .stitch-quiz-radio-dot,
+.stitch-quiz-option.incorrect .stitch-quiz-radio-dot {
+  opacity: 1;
+}
+
+.stitch-quiz-letter {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 18px;
+  flex-shrink: 0;
+  transition: color 150ms ease;
+}
+
+.stitch-quiz-option.selected .stitch-quiz-letter,
+.stitch-quiz-option:hover:not(:disabled) .stitch-quiz-letter {
+  color: var(--accent);
+}
+
+.stitch-quiz-option.correct .stitch-quiz-letter { color: #34d399; }
+.stitch-quiz-option.incorrect .stitch-quiz-letter { color: #f87171; }
+
+.stitch-quiz-option-text {
+  font-size: 15px;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* ── Quiz Question Card ── */
+.stitch-quiz-question-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 32px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stitch-quiz-question-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(75,43,238,0.5), transparent);
+}
+
+.stitch-quiz-question-text {
+  font-size: clamp(18px, 2.5vw, 22px);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* ── Quiz Submit Button ── */
+.stitch-quiz-submit {
+  width: 100%;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 150ms ease;
+  box-shadow: 0 4px 14px rgba(75,43,238,0.4);
+  letter-spacing: -0.01em;
+}
+
+.stitch-quiz-submit:hover {
+  box-shadow: 0 6px 20px rgba(75,43,238,0.55);
+  opacity: 0.92;
+}
+
+.stitch-quiz-submit:active {
+  transform: scale(0.98);
+}
+
+.stitch-quiz-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Quiz Progress Bar ── */
+.stitch-quiz-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #1e1e25;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.stitch-quiz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 500ms ease-out;
+}
+
+/* ── Quiz Completion ── */
+.stitch-quiz-results {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 32px 0;
+}
+
+.stitch-results-ring {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 12px 28px rgba(75,43,238,0.2));
+}
+
+.stitch-results-score-text {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stitch-results-score-pct {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+}
+
+.stitch-results-score-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stitch-results-stats-card {
+  width: 100%;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.stitch-results-message {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stitch-results-message h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.stitch-results-message p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stitch-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stitch-results-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: #1e1e24;
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.stitch-results-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.stitch-results-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* ── Collections Accordion ── */
+.stitch-collection-item {
+  border-bottom: 1px solid #222226;
+}
+
+.stitch-collection-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.stitch-collection-toggle:hover {
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+}
+
+.stitch-collection-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stitch-collection-toggle-left .material-symbols-outlined {
+  font-size: 22px;
+  transition: color 150ms ease;
+}
+
+.stitch-collection-toggle.open .material-symbols-outlined.folder-icon {
+  color: var(--accent);
+}
+
+.stitch-collection-chevron {
+  transition: transform 200ms ease;
+}
+
+.stitch-collection-toggle.open .stitch-collection-chevron {
+  transform: rotate(180deg);
+}
+
+.stitch-collection-name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.stitch-collection-content {
+  display: none;
+  flex-direction: column;
+  padding: 0 0 12px 40px;
+  gap: 8px;
+}
+
+.stitch-collection-content.open {
+  display: flex;
+}
+
+.stitch-collection-deck-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #18181d;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.stitch-collection-deck-item:hover {
+  background: #1e1e24;
+  border-color: rgba(75,43,238,0.35);
+}
+
+.stitch-collection-deck-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(75,43,238,0.12);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.stitch-collection-deck-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  transition: color 150ms ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.stitch-collection-deck-remove:hover {
+  color: #f87171;
+}
+
+.stitch-add-deck-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(75,43,238,0.4);
+  background: rgba(18,18,18,0.5);
+  color: #c6c0ff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.stitch-add-deck-btn:hover {
+  border-color: rgba(75,43,238,0.7);
+  background: rgba(75,43,238,0.05);
+}
+
+/* ── Settings ── */
+.stitch-settings-section {
+  margin-bottom: 32px;
+}
+
+.stitch-settings-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6b7b;
+  margin-bottom: 12px;
+}
+
+.stitch-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.stitch-settings-row:last-child {
+  border-bottom: none;
+}
+
+.stitch-settings-row-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.stitch-settings-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+/* Learning style segmented control */
+.stitch-learning-style {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+}
+
+.stitch-learning-style-btn {
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.stitch-learning-style-btn:hover {
+  color: var(--text-primary);
+}
+
+.stitch-learning-style-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(75,43,238,0.25);
+}
+
+/* Settings account card */
+.stitch-account-card {
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.stitch-account-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.stitch-account-avatar-fallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #7c6af5, #4b2bee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Settings select wrapper with icon */
+.stitch-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.stitch-select-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px !important;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 7px 32px 7px 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: border-color 150ms ease;
+  min-width: 160px;
+}
+
+.stitch-select-wrap select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(75,43,238,0.15);
+}
+
+.stitch-select-wrap select:hover {
+  border-color: #555;
+}
+
+.stitch-select-icon {
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+/* ── Create Deck / AI Generation ── */
+.stitch-create-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: #17171c;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.stitch-create-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.stitch-create-tab:hover { color: var(--text-primary); }
+
+.stitch-create-tab.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.stitch-directive-pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 150ms ease;
+}
+
+.stitch-directive-pill:hover {
+  border-color: rgba(75,43,238,0.5);
+  color: var(--text-primary);
+}
+
+.stitch-directive-pill.active {
+  background: rgba(75,43,238,0.15);
+  border-color: rgba(75,43,238,0.4);
+  color: #c6c0ff;
+}
+
+.stitch-size-pill {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  background: #17171c;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 150ms ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stitch-size-pill:hover {
+  border-color: rgba(75,43,238,0.4);
+  color: var(--text-primary);
+}
+
+.stitch-size-pill.active {
+  background: rgba(75,43,238,0.12);
+  border-color: var(--accent);
+  color: #c6c0ff;
+}
+
+.stitch-size-pill-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.stitch-difficulty-btn,
+.stitch-recall-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 150ms ease;
+}
+
+.stitch-difficulty-btn:hover,
+.stitch-recall-btn:hover {
+  border-color: rgba(75,43,238,0.4);
+  color: var(--text-primary);
+}
+
+.stitch-difficulty-btn.active,
+.stitch-recall-btn.active {
+  background: rgba(75,43,238,0.12);
+  border-color: var(--accent);
+  color: #c6c0ff;
+  font-weight: 600;
+}
+
+.stitch-word-counter {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ── Page-level max widths ── */
+.app-layout .main-content > .page-enter > section {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.route-dashboard .main-content > .page-enter {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.route-decks .main-content > .page-enter,
+.route-collections .main-content > .page-enter,
+.route-settings .main-content > .page-enter {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.route-quiz .main-content > .page-enter {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.app-layout[class*="route-decks-"] .main-content > .page-enter {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* ── Generation Loader ── */
+.generation-loader {
+  margin-top: 16px;
+  padding: 32px 24px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(75, 43, 238, 0.12), #17171c);
+  border: 1px solid rgba(75, 43, 238, 0.3);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.generation-loader h2 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.generation-loader p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.generation-loader-orbit {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.generation-loader-orbit span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(75, 43, 238, 0.35);
+  border-radius: 50%;
+  animation: loaderOrbit 2.4s ease-in-out infinite;
+}
+
+.generation-loader-orbit span:nth-child(2) {
+  inset: 7px;
+  animation-delay: -0.8s;
+}
+
+.generation-loader-orbit span:nth-child(3) {
+  inset: 14px;
+  animation-delay: -1.6s;
+}
+
+.generation-loader-core {
+  position: absolute;
+  inset: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 24px rgba(75, 43, 238, 0.7);
+  animation: loaderPulse 1.5s ease-in-out infinite;
+}
+
+.generation-loader-lines {
+  width: min(220px, 80%);
+  display: grid;
+  gap: 6px;
+}
+
+.generation-loader-lines span {
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #2a2a31, var(--accent), #2a2a31);
+  background-size: 200% 100%;
+  animation: loaderShimmer 1.4s linear infinite;
+}
+
+.generation-loader-lines span:nth-child(2) { width: 82%; }
+.generation-loader-lines span:nth-child(3) { width: 64%; }
+
+@keyframes loaderOrbit {
+  0%, 100% { transform: scale(0.82); opacity: 0.2; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes loaderPulse {
+  50% { transform: scale(1.12); }
+}
+
+@keyframes loaderShimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .app-layout .topbar { height: 60px; }
+
+  .stitch-quiz-option {
+    padding: 14px 16px;
+  }
+
+  .stitch-flashcard-container {
+    padding: 20px;
+    min-height: 260px;
+  }
+
+  .stitch-deck-sidebar {
+    max-height: 300px;
+  }
+
+  .stitch-results-ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  .stitch-results-score-pct {
+    font-size: 36px;
+  }
+
+  .stitch-learning-style-btn {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .generation-loader-orbit span,
+  .generation-loader-core,
+  .generation-loader-lines span {
+    animation: none;
+  }
+
+  .stitch-flashcard-container,
+  .stitch-quiz-option,
+  .mobile-nav-item {
+    transition: none;
+  }
+}

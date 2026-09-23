@@ -3,14 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 
 const navLinks = [
-    { to: '/dashboard', label: 'Dashboard', icon: '⊞' },
-    { to: '/decks', label: 'My Decks', icon: '▤' },
-    { to: '/collections', label: 'Collections', icon: '◫' },
-    { to: '/quiz', label: 'Quiz Mode', icon: '◈' },
-    { to: '/settings', label: 'Settings', icon: '⚙' },
+    { to: '/dashboard', label: 'Home', icon: 'home' },
+    { to: '/decks', label: 'Decks', icon: 'layers' },
+    { to: '/collections', label: 'Collections', icon: 'folder' },
+    { to: '/quiz', label: 'Quiz', icon: 'school' },
+    { to: '/settings', label: 'Settings', icon: 'settings' },
 ];
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, collapsed, onClose, onToggleCollapse }) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -18,7 +18,7 @@ export default function Sidebar({ isOpen, onClose }) {
     // Close sidebar on route change (mobile)
     useEffect(() => {
         onClose();
-    }, [location.pathname]);
+    }, [location.pathname, onClose]);
 
     // Prevent body scroll when sidebar is open on mobile
     useEffect(() => {
@@ -47,29 +47,53 @@ export default function Sidebar({ isOpen, onClose }) {
                 />
             )}
 
-            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+            <aside className={`sidebar ${isOpen ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>
+                {/* Collapse toggle */}
+                <button
+                    className="sidebar-collapse-btn"
+                    onClick={onToggleCollapse}
+                    aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+                    title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                        {collapsed ? 'chevron_right' : 'chevron_left'}
+                    </span>
+                </button>
+
                 {/* New Deck Button */}
                 <button
-                    className="btn btn-primary btn-full"
+                    className="btn btn-primary btn-full sidebar-new-deck"
                     onClick={() => { navigate('/create'); onClose(); }}
-                    style={{ marginBottom: 20, height: 36, borderRadius: 'var(--radius-sm)' }}
+                    title="New Deck"
                 >
-                    + New Deck
+                    <span className="material-symbols-outlined sidebar-item-icon" style={{ fontSize: 18 }}>add</span>
+                    <span className="sidebar-label">New Deck</span>
                 </button>
 
                 {/* Nav Links */}
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {navLinks.map(link => (
-                        <NavLink
-                            key={link.to}
-                            to={link.to}
-                            end={link.to === '/dashboard'}
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                        >
-                            <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{link.icon}</span>
-                            {link.label}
-                        </NavLink>
-                    ))}
+                    {navLinks.map(link => {
+                        const isActive = link.to === '/dashboard'
+                            ? location.pathname === '/dashboard'
+                            : location.pathname.startsWith(link.to);
+                        return (
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                end={link.to === '/dashboard'}
+                                className={({ isActive: navActive }) => `nav-item ${navActive ? 'active' : ''}`}
+                                title={collapsed ? link.label : undefined}
+                            >
+                                <span
+                                    className={`material-symbols-outlined nav-icon ${isActive ? 'icon-filled' : ''}`}
+                                    style={{ fontSize: 20 }}
+                                >
+                                    {link.icon}
+                                </span>
+                                <span className="sidebar-label">{link.label}</span>
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
                 {/* Spacer */}
@@ -81,29 +105,34 @@ export default function Sidebar({ isOpen, onClose }) {
                     style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '12px',
                         borderTop: '1px solid var(--border-subtle)', marginTop: 8,
-                        cursor: 'pointer', transition: 'background 150ms ease', borderRadius: 'var(--radius-sm)'
+                        cursor: 'pointer', transition: 'background 150ms ease', borderRadius: 'var(--radius-sm)',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     title="Open Settings"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate('/settings')}
+                    aria-label="Open Settings"
                 >
                     {user?.avatar ? (
                         <img
                             src={user.avatar}
                             alt={user.displayName}
-                            style={{ width: 24, height: 24, borderRadius: '50%' }}
+                            style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }}
                             referrerPolicy="no-referrer"
                         />
                     ) : (
                         <div style={{
-                            width: 24, height: 24, borderRadius: '50%', background: 'var(--accent)',
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #7c6af5, #4b2bee)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 'var(--text-xs)', fontWeight: 600, color: '#fff'
+                            fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0,
                         }}>
                             {user?.displayName?.[0] || 'U'}
                         </div>
                     )}
-                    <span style={{
+                    <span className="sidebar-label" style={{
                         fontSize: 'var(--text-sm)', color: 'var(--text-primary)',
                         flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>

@@ -8,7 +8,6 @@ FlashLearn is an intelligent, AI-powered flashcard generation and studying platf
 
 - **🤖 AI-Powered Generation (Google Gemini)**
   Generate comprehensive flashcards instantly using four distinct input methods:
-  - **Topic Search:** Simply type a topic (e.g., *Photosynthesis*, *Cold War*) and let Gemini build a comprehensive deck.
   - **Text Paste:** Copy and paste your lecture notes or study material directly.
   - **PDF Upload:** Upload your PDF documents or textbooks.
   - **Word Doc Upload:** Support for `.docx` files.
@@ -104,6 +103,40 @@ npm run server   # Starts the Node.js Express backend (usually on port 5000)
 ```
 
 **Note:** The concurrent script allows you to run both from the root if configured: `npm start` (check `package.json` for customized run profiles).
+
+### Google OAuth Configuration
+
+Google sign-in is handled by the Express backend. The frontend only navigates to the backend's `/auth/google` endpoint; it never receives or uses the Google client secret.
+
+For local development, configure the ignored `.env` file with:
+
+```env
+PORT=3001
+CLIENT_URL=http://localhost:5173
+GOOGLE_CALLBACK_URL=http://localhost:3001/google/callback
+VITE_AUTH_BASE_URL=
+VITE_API_BASE_URL=
+```
+
+For production, set `CLIENT_URL`, `GOOGLE_CALLBACK_URL`, and `VITE_AUTH_BASE_URL` to the deployed frontend/backend domains. Do not use `VITE_*` variables for Google credentials.
+
+In Google Cloud Console, configure the OAuth client as follows:
+
+**Authorized JavaScript origins**
+
+```text
+http://localhost:5173
+https://<production-frontend-domain>
+```
+
+**Authorized redirect URIs**
+
+```text
+http://localhost:3001/google/callback
+https://<production-backend-domain>/google/callback
+```
+
+The JavaScript origins are retained for compatibility with the Google OAuth client configuration; this server-side Passport flow uses the redirect URIs for the actual authorization callback.
 
 ---
 
