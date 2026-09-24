@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import api from '../utils/api';
 import { getCached, setCached, invalidateCache } from '../utils/cache';
 

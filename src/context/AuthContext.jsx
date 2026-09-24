@@ -1,7 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { useState } from 'react';
 import api from '../utils/api';
-
-const AuthContext = createContext(null);
+import AuthContext from './authContextValue';
 
 function readStoredUser() {
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -61,8 +60,3 @@ export function AuthProvider({ children }) {
     );
 }
 
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-    return ctx;
-}
