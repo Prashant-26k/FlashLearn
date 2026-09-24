@@ -1,5 +1,3 @@
-/* global process */
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ProviderError } from '../errors.js';
 

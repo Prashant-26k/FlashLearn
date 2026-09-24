@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 /* ─────────────────────────────────────────────
    Inject global styles (keyframes, scrollbar,
@@ -308,10 +308,9 @@ const DEMO_CARDS = [
 function DemoFlashCard() {
   const [flipped, setFlipped] = useState(false);
   const [index, setIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth <= 600);
     const handle = () => setIsMobile(window.innerWidth <= 600);
     window.addEventListener('resize', handle);
     return () => window.removeEventListener('resize', handle);
@@ -414,7 +413,10 @@ export default function Home() {
     }
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.getElementById("fl-global-css")?.remove();
+    };
   }, []);
 
   useScrollReveal();
@@ -422,7 +424,7 @@ export default function Home() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
-  const marqueeItems = ["Text Paste", "PDF Upload", "Word Documents", "Topic Search", "Quiz Mode", "Collections", "Gemini AI", "Spaced Repetition", "Export Decks", "Auto-Save"];
+  const marqueeItems = ["Text Paste", "PDF Upload", "Word Documents", "Quiz Mode", "Collections", "Gemini AI", "Spaced Repetition", "Export Decks", "Auto-Save"];
 
   const testimonials = [
     { featured: true, stars: 5, quote: <>I uploaded my entire operating systems textbook as a PDF and had <strong>180 flashcards in under 60 seconds.</strong> Passed my exam with the highest score in the class.</>, name: "Arjun Mehta", role: "CS · IIT Delhi", initials: "A", gradient: "linear-gradient(135deg,#7c6ef7,#a598ff)", topReview: true },
@@ -430,7 +432,7 @@ export default function Home() {
     { featured: false, stars: 5, quote: <>Switched from Anki. The UI alone was enough — but the <strong>AI-generated cards are genuinely better</strong> than the ones I spent hours writing myself.</>, name: "Kai Lindberg", role: "Law Student · Stockholm", initials: "K", gradient: "linear-gradient(135deg,#e8a320,#f0c060)" },
     { featured: false, stars: 5, quote: <>Pasted my biochem lecture notes at 11pm before a 9am exam. <strong>Generated 40 cards, studied for 2 hours, got an A.</strong> This is insane.</>, name: "Priya Nair", role: "Biochemistry · UCL", initials: "P", gradient: "linear-gradient(135deg,#e05252,#f07070)" },
     { featured: false, stars: 5, quote: <>The Collections feature changed how I study. I have every subject organized, can quiz across multiple decks simultaneously, and <strong>actually track my progress.</strong></>, name: "Marcus Chen", role: "MBA · INSEAD", initials: "M", gradient: "linear-gradient(135deg,#7c6ef7,#5e52c0)" },
-    { featured: true, stars: 5, quote: <>I teach a university course. I started using FlashLearn to build study materials for my students. The <strong>topic search is scary good</strong> — it knows exactly what matters.</>, name: "Dr. Elena Rossi", role: "Professor · Bocconi", initials: "D", gradient: "linear-gradient(135deg,#4caf82,#2d8f65)", featuredLabel: "Featured" },
+    { featured: true, stars: 5, quote: <>I teach a university course. I started using FlashLearn to build study materials for my students. Turning my course material into useful study cards is remarkably fast.</>, name: "Dr. Elena Rossi", role: "Professor · Bocconi", initials: "D", gradient: "linear-gradient(135deg,#4caf82,#2d8f65)", featuredLabel: "Featured" },
     { featured: false, stars: 4, quote: <>Finally a flashcard tool that <strong>doesn't look like it was designed in 2009.</strong> The dark mode is beautiful, the cards are clean, and the whole flow just works.</>, name: "Jordan Wells", role: "UX Designer · Berlin", initials: "J", gradient: "linear-gradient(135deg,#e8a320,#c07010)" },
     { featured: false, stars: 5, quote: <>Uploaded a 48-page DOCX thesis. Got <strong>50 high-quality cards</strong> that perfectly captured the key arguments. Used them for my viva prep. First class result.</>, name: "Olivia Thompson", role: "PhD Candidate · Oxford", initials: "O", gradient: "linear-gradient(135deg,#a598ff,#7c6ef7)" },
   ];
@@ -558,7 +560,7 @@ export default function Home() {
           </h1>
 
           <p className="hero-sub" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 440, lineHeight: 1.7, marginBottom: 40, fontWeight: 300 }}>
-            Generate intelligent flashcard decks from your notes, PDFs, and any topic — powered by Gemini AI. Retain more, study less.
+            Generate intelligent flashcard decks from your notes and documents — powered by Gemini AI. Retain more, study less.
           </p>
 
           <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
@@ -607,9 +609,9 @@ export default function Home() {
       {/* ── FEATURES ── */}
       <section id="features" style={{ padding: "140px 0", position: "relative" }}>
         <div className="reveal home-features-header" style={{ textAlign: "center", padding: "0 80px 80px" }}>
-          <span style={eyebrowStyle}>Four Ways to Generate</span>
+          <span style={eyebrowStyle}>Three Ways to Generate</span>
           <h2 style={sectionTitleStyle}>Your Knowledge.<br />Any Source.</h2>
-          <p style={sectionSubStyle}>FlashLearn transforms anything into study material — paste text, upload files, or just name a topic.</p>
+          <p style={sectionSubStyle}>FlashLearn transforms your study material into flashcards — paste text or upload files.</p>
         </div>
 
         <div className="home-features-container" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 80px" }}>
@@ -767,5 +769,3 @@ const sectionSubStyle = { fontSize: 16, color: "var(--text-secondary)", maxWidth
 const featureNumberStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 120, lineHeight: 1, color: "transparent", WebkitTextStroke: "1px var(--border)", marginBottom: -20, display: "block", userSelect: "none" };
 const featureTitleStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: "var(--text-primary)", letterSpacing: "0.01em", marginBottom: 16 };
 const featureDescStyle = { fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.75, fontWeight: 300, marginBottom: 28 };
-const chipStyle = { position: "absolute", top: 20, left: 20, background: "var(--violet-dim)", border: "1px solid rgba(124,110,247,0.2)", borderRadius: 6, padding: "4px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--violet-bright)", textTransform: "uppercase" };
-const cardLabelStyle = { fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 20 };

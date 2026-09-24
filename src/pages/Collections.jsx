@@ -1,63 +1,57 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { SkeletonGrid } from '../components/Skeleton';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import api from '../utils/api';
 import { getCached, setCached, invalidateCache } from '../utils/cache';
 
 export default function Collections() {
-    const [collections, setCollections] = useState([]);
-    const [decks, setDecks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState(null);
+    const [collections, setCollections] = useState(() => getCached('collections') || []);
+    const [decks, setDecks] = useState(() => getCached('decks') || []);
+    const [loading, setLoading] = useState(() => !getCached('collections') || !getCached('decks'));
+    const [openCollectionId, setOpenCollectionId] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [newName, setNewName] = useState('');
-    const [editingName, setEditingName] = useState(false);
-    const [editName, setEditName] = useState('');
     const [deleteId, setDeleteId] = useState(null);
-    const [showAddDeck, setShowAddDeck] = useState(false);
+    const [showAddDeckFor, setShowAddDeckFor] = useState(null);
     const [searchDeck, setSearchDeck] = useState('');
+    const [search, setSearch] = useState('');
     const navigate = useNavigate();
     const toast = useToast();
 
-    useEffect(() => { loadData(); }, []);
-
-    const loadData = async () => {
-        const cachedCol = getCached('collections');
-        const cachedDecks = getCached('decks');
-
-        if (cachedCol && cachedDecks) {
-            setCollections(cachedCol);
-            setDecks(cachedDecks);
+    useEffect(() => {
+        let mounted = true;
+        Promise.allSettled([
+            api.get('/api/collections'),
+            api.get('/api/decks'),
+        ]).then(([colRes, deckRes]) => {
+            if (!mounted) return;
+            if (colRes.status === 'fulfilled') {
+                const colData = Array.isArray(colRes.value.data) ? colRes.value.data : [];
+                setCollections(colData);
+                setCached('collections', colData, 60000);
+            }
+            if (deckRes.status === 'fulfilled') {
+                const decksData = Array.isArray(deckRes.value.data) ? deckRes.value.data : [];
+                setDecks(decksData);
+                setCached('decks', decksData, 60000);
+            }
             setLoading(false);
-            return;
-        }
+        });
 
-        try {
-            const [colRes, deckRes] = await Promise.all([
-                api.get('/api/collections'),
-                api.get('/api/decks'),
-            ]);
-            const colData = Array.isArray(colRes.data) ? colRes.data : [];
-            const decksData = Array.isArray(deckRes.data) ? deckRes.data : [];
-            setCollections(colData);
-            setDecks(decksData);
-            setCached('collections', colData, 60000);
-            setCached('decks', decksData, 60000);
-        } catch { /* backend not running */ }
-        setLoading(false);
-    };
+        return () => { mounted = false; };
+    }, []);
 
     const createCollection = async () => {
         if (!newName.trim()) return;
         try {
             const res = await api.post('/api/collections', { name: newName, deckIds: [] });
-            setCollections([...collections, res.data]);
+            const newCol = res.data;
+            setCollections(prev => [...prev, newCol]);
             invalidateCache('collections');
-            invalidateCache('dashboard_collections');
             setNewName('');
             setShowCreate(false);
+            setOpenCollectionId(newCol._id);
             toast.success('Collection created');
         } catch {
             toast.error('Failed to create collection');
@@ -67,10 +61,8 @@ export default function Collections() {
     const updateCollection = async (col) => {
         try {
             const res = await api.put(`/api/collections/${col._id}`, col);
-            setCollections(collections.map(c => c._id === col._id ? res.data : c));
+            setCollections(prev => prev.map(c => c._id === col._id ? res.data : c));
             invalidateCache('collections');
-            invalidateCache('dashboard_collections');
-            if (selected?._id === col._id) setSelected(res.data);
         } catch {
             toast.error('Failed to update');
         }
@@ -79,10 +71,9 @@ export default function Collections() {
     const deleteCollection = async () => {
         try {
             await api.delete(`/api/collections/${deleteId}`);
-            setCollections(collections.filter(c => c._id !== deleteId));
+            setCollections(prev => prev.filter(c => c._id !== deleteId));
             invalidateCache('collections');
-            invalidateCache('dashboard_collections');
-            if (selected?._id === deleteId) setSelected(null);
+            if (openCollectionId === deleteId) setOpenCollectionId(null);
             toast.success('Collection deleted');
         } catch {
             toast.error('Failed to delete');
@@ -90,190 +81,249 @@ export default function Collections() {
         setDeleteId(null);
     };
 
-    const addDeckToCollection = (deckId) => {
-        if (!selected) return;
-        const updated = { ...selected, deckIds: [...(selected.deckIds || []), deckId] };
+    const addDeckToCollection = (collection, deckId) => {
+        const updated = { ...collection, deckIds: [...(collection.deckIds || []), deckId] };
         updateCollection(updated);
-        setShowAddDeck(false);
+        setShowAddDeckFor(null);
+        setSearchDeck('');
     };
 
-    const removeDeckFromCollection = (deckId) => {
-        if (!selected) return;
-        const updated = { ...selected, deckIds: (selected.deckIds || []).filter(id => id !== deckId) };
+    const removeDeckFromCollection = (collection, deckId) => {
+        const updated = { ...collection, deckIds: (collection.deckIds || []).filter(id => id !== deckId) };
         updateCollection(updated);
     };
 
-    const handleNameSave = () => {
-        setEditingName(false);
-        if (editName && editName !== selected.name) {
-            updateCollection({ ...selected, name: editName });
-        }
+    const toggleCollection = (colId) => {
+        setOpenCollectionId(prev => prev === colId ? null : colId);
+        setShowAddDeckFor(null);
     };
 
-    const colors = ['#5E6AD2', '#4CAF82', '#E8A320', '#E05252', '#7B84E0'];
-
-    const selectedDeckIdSet = useMemo(() =>
-        new Set(selected?.deckIds || []),
-        [selected?.deckIds]
+    const filteredCollections = useMemo(() =>
+        collections.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase())),
+        [collections, search]
     );
 
-    const availableDecks = useMemo(() =>
+    const getAvailableDecks = (collection) =>
         decks.filter(d =>
-            !selectedDeckIdSet.has(d._id) &&
+            !collection.deckIds?.includes(d._id) &&
             d.title.toLowerCase().includes(searchDeck.toLowerCase())
-        ),
-        [decks, selectedDeckIdSet, searchDeck]
-    );
-
-    if (selected) {
-        const collectionDecks = decks.filter(d => selected.deckIds?.includes(d._id));
-
-        return (
-            <div className="page-enter">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                    <button className="btn btn-ghost" onClick={() => setSelected(null)} style={{ fontSize: 18 }}>←</button>
-                    {editingName ? (
-                        <input
-                            className="input"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            onBlur={handleNameSave}
-                            onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
-                            autoFocus
-                            style={{ fontSize: 'var(--text-xl)', fontWeight: 700, width: 300 }}
-                        />
-                    ) : (
-                        <h1
-                            style={{ fontSize: 'var(--text-xl)', fontWeight: 700, cursor: 'pointer' }}
-                            onClick={() => { setEditName(selected.name); setEditingName(true); }}
-                        >
-                            {selected.name}
-                        </h1>
-                    )}
-                    <span className="badge">{collectionDecks.length} decks</span>
-                </div>
-
-                {/* Deck list */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-                    {collectionDecks.length > 0 ? collectionDecks.map(deck => (
-                        <div key={deck._id} style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '12px 16px', background: 'var(--bg-elevated)',
-                            border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)',
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <span style={{ color: 'var(--text-muted)', cursor: 'grab' }}>⠿</span>
-                                <span
-                                    style={{ fontWeight: 500, cursor: 'pointer' }}
-                                    onClick={() => navigate(`/decks/${deck._id}`)}
-                                >
-                                    {deck.title}
-                                </span>
-                                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                                    {deck.cards?.length || 0} cards
-                                </span>
-                            </div>
-                            <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={() => removeDeckFromCollection(deck._id)}
-                                style={{ fontSize: 16 }}
-                            >
-                                ×
-                            </button>
-                        </div>
-                    )) : (
-                        <p style={{ color: 'var(--text-muted)', padding: '16px', textAlign: 'center' }}>
-                            No decks in this collection
-                        </p>
-                    )}
-                </div>
-
-                {/* Add deck */}
-                {showAddDeck ? (
-                    <div style={{
-                        padding: 16, background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)',
-                    }}>
-                        <input
-                            className="input"
-                            placeholder="Search decks..."
-                            value={searchDeck}
-                            onChange={(e) => setSearchDeck(e.target.value)}
-                            style={{ marginBottom: 8 }}
-                        />
-                        <div style={{ maxHeight: 200, overflowY: 'auto' }}>
-                            {availableDecks.map(d => (
-                                <button
-                                    key={d._id}
-                                    className="dropdown-item"
-                                    onClick={() => addDeckToCollection(d._id)}
-                                >
-                                    {d.title} <span style={{ color: 'var(--text-muted)' }}>({d.cards?.length || 0} cards)</span>
-                                </button>
-                            ))}
-                            {availableDecks.length === 0 && (
-                                <p style={{ color: 'var(--text-muted)', padding: 8, fontSize: 'var(--text-sm)' }}>
-                                    No more decks available
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    <button className="btn btn-secondary" onClick={() => setShowAddDeck(true)}>
-                        + Add Deck
-                    </button>
-                )}
-
-
-            </div>
         );
-    }
+
+    const getDeckById = (id) => decks.find(d => d._id === id);
 
     return (
-        <div className="page-enter">
+        <div className="page-enter stitch-screen">
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>Collections</h1>
-                <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New Collection</button>
+                <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>Collections</h1>
+                <button
+                    className="btn btn-primary"
+                    onClick={() => setShowCreate(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+                    New Collection
+                </button>
             </div>
 
-            {loading ? <SkeletonGrid count={6} /> : collections.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-                    {collections.map((col, idx) => (
-                        <div
-                            key={col._id}
-                            className="deck-card"
-                            style={{ borderLeft: `3px solid ${colors[idx % colors.length]}`, position: 'relative' }}
-                            onClick={() => setSelected(col)}
-                        >
-                            <div style={{ paddingRight: 32 }}>
-                                <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>{col.name}</h3>
-                                <span className="badge">{col.deckIds?.length || 0} decks</span>
-                            </div>
-                            <button
-                                className="btn btn-ghost"
-                                onClick={(e) => { e.stopPropagation(); setDeleteId(col._id); }}
-                                style={{ position: 'absolute', top: 12, right: 12, padding: 8, color: 'var(--text-muted)' }}
-                                title="Delete Collection"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                            </button>
-                        </div>
+            {/* Search */}
+            <div className="stitch-search-row">
+                <span className="material-symbols-outlined">search</span>
+                <input
+                    className="input"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search collections..."
+                    aria-label="Search collections"
+                />
+            </div>
+
+            {/* Collections Accordion */}
+            {loading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="skeleton" style={{ height: 56, borderRadius: 8, marginBottom: 4 }} />
                     ))}
+                </div>
+            ) : filteredCollections.length > 0 ? (
+                <div style={{
+                    background: '#17171c',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                }}>
+                    {filteredCollections.map((col) => {
+                        const isOpen = openCollectionId === col._id;
+                        const collectionDecks = (col.deckIds || []).map(getDeckById).filter(Boolean);
+                        const isAddingDeck = showAddDeckFor === col._id;
+                        const availableDecks = getAvailableDecks(col);
+
+                        return (
+                            <div key={col._id} className="stitch-collection-item">
+                                {/* Accordion Toggle */}
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <button
+                                        className={`stitch-collection-toggle ${isOpen ? 'open' : ''}`}
+                                        onClick={() => toggleCollection(col._id)}
+                                        aria-expanded={isOpen}
+                                        style={{ flex: 1 }}
+                                    >
+                                        <div className="stitch-collection-toggle-left">
+                                            <span className={`material-symbols-outlined folder-icon ${isOpen ? 'icon-filled' : ''}`}
+                                                style={{ color: isOpen ? 'var(--accent)' : 'var(--text-muted)', fontSize: 22 }}>
+                                                {isOpen ? 'folder_open' : 'folder'}
+                                            </span>
+                                            <div>
+                                                <div className="stitch-collection-name">{col.name}</div>
+                                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                                                    {collectionDecks.length} {collectionDecks.length === 1 ? 'deck' : 'decks'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <span className="material-symbols-outlined stitch-collection-chevron" style={{ color: 'var(--text-muted)', fontSize: 18 }}>
+                                                expand_more
+                                            </span>
+                                        </div>
+                                    </button>
+                                    {/* Delete button */}
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setDeleteId(col._id); }}
+                                        style={{
+                                            background: 'none', border: 'none', cursor: 'pointer',
+                                            color: 'var(--text-muted)', padding: '8px 14px',
+                                            transition: 'color 150ms ease',
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                        title="Delete collection"
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                                    </button>
+                                </div>
+
+                                {/* Expanded Content */}
+                                {isOpen && (
+                                    <div className="stitch-collection-content open">
+                                        {/* Deck list */}
+                                        {collectionDecks.length > 0 ? collectionDecks.map(deck => (
+                                            <div key={deck._id} className="stitch-collection-deck-item"
+                                                onClick={() => navigate(`/decks/${deck._id}`)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => e.key === 'Enter' && navigate(`/decks/${deck._id}`)}
+                                            >
+                                                <div className="stitch-collection-deck-icon">
+                                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>layers</span>
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {deck.title}
+                                                    </div>
+                                                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                                        {deck.cards?.length || 0} cards
+                                                    </div>
+                                                </div>
+                                                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-muted)' }}>chevron_right</span>
+                                                <button
+                                                    className="stitch-collection-deck-remove"
+                                                    onClick={(e) => { e.stopPropagation(); removeDeckFromCollection(col, deck._id); }}
+                                                    title="Remove from collection"
+                                                >
+                                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>remove_circle_outline</span>
+                                                </button>
+                                            </div>
+                                        )) : (
+                                            <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '4px 0 8px' }}>
+                                                No decks in this collection yet.
+                                            </p>
+                                        )}
+
+                                        {/* Add Deck */}
+                                        {isAddingDeck ? (
+                                            <div style={{
+                                                background: '#18181d', border: '1px solid var(--border-subtle)',
+                                                borderRadius: 10, padding: 12, marginTop: 4,
+                                            }}>
+                                                <div className="stitch-search-row" style={{ marginBottom: 10 }}>
+                                                    <span className="material-symbols-outlined">search</span>
+                                                    <input
+                                                        className="input"
+                                                        placeholder="Search decks..."
+                                                        value={searchDeck}
+                                                        onChange={(e) => setSearchDeck(e.target.value)}
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                                <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                    {availableDecks.length > 0 ? availableDecks.map(d => (
+                                                        <button
+                                                            key={d._id}
+                                                            onClick={() => addDeckToCollection(col, d._id)}
+                                                            style={{
+                                                                display: 'flex', alignItems: 'center', gap: 10,
+                                                                padding: '10px 12px', borderRadius: 8,
+                                                                background: '#1e1e24', border: '1px solid var(--border-subtle)',
+                                                                color: 'var(--text-primary)', cursor: 'pointer',
+                                                                fontFamily: 'var(--font-sans)', textAlign: 'left',
+                                                                transition: 'background 150ms ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#25252c'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#1e1e24'}
+                                                        >
+                                                            <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--accent)' }}>add</span>
+                                                            <span style={{ fontSize: 13, fontWeight: 500, flex: 1 }}>{d.title}</span>
+                                                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{d.cards?.length || 0} cards</span>
+                                                        </button>
+                                                    )) : (
+                                                        <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: 8, textAlign: 'center' }}>
+                                                            {searchDeck ? 'No matching decks' : 'No more decks available'}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => { setShowAddDeckFor(null); setSearchDeck(''); }}
+                                                    style={{
+                                                        width: '100%', marginTop: 8, padding: '7px', borderRadius: 8,
+                                                        border: '1px solid var(--border-subtle)', background: 'transparent',
+                                                        color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                                                        fontSize: 12,
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                className="stitch-add-deck-btn"
+                                                onClick={(e) => { e.stopPropagation(); setShowAddDeckFor(col._id); setSearchDeck(''); }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+                                                Add Deck
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
                 <div style={{
-                    textAlign: 'center', padding: '64px 0',
-                    border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)',
+                    textAlign: 'center', padding: '64px 24px',
+                    background: '#17171c', border: '1px solid var(--border-subtle)', borderRadius: 14,
                 }}>
-                    <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>◫</div>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>No collections yet</p>
-                    <button className="btn btn-primary" onClick={() => setShowCreate(true)}>Create Collection</button>
+                    <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--border-subtle)', marginBottom: 16, display: 'block' }}>folder</span>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: 16, fontSize: 14 }}>
+                        {search ? `No collections matching "${search}"` : 'No collections yet. Create one to organize your decks.'}
+                    </p>
+                    {!search && (
+                        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>Create Collection</button>
+                    )}
                 </div>
             )}
 
-            {/* Create modal */}
+            {/* Create Collection Modal */}
             <Modal
                 isOpen={showCreate}
                 onClose={() => setShowCreate(false)}
@@ -281,7 +331,7 @@ export default function Collections() {
                 actions={
                     <>
                         <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
-                        <button className="btn btn-primary" onClick={createCollection}>Create</button>
+                        <button className="btn btn-primary" onClick={createCollection} disabled={!newName.trim()}>Create</button>
                     </>
                 }
             >
@@ -295,7 +345,7 @@ export default function Collections() {
                 />
             </Modal>
 
-            {/* Delete confirmation */}
+            {/* Delete Confirmation Modal */}
             <Modal
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
@@ -307,7 +357,7 @@ export default function Collections() {
                     </>
                 }
             >
-                Are you sure? This will not delete the decks inside.
+                Are you sure? The decks inside will not be deleted — just removed from this collection.
             </Modal>
         </div>
     );

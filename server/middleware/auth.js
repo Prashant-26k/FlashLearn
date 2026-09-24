@@ -25,7 +25,7 @@ export default function authMiddleware(req, res, next) {
             avatar: decoded.avatar,
         };
         next();
-    } catch (err) {
+    } catch {
         return res.status(401).json({ error: 'Unauthorized — invalid token' });
     }
 }

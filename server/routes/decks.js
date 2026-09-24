@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         if (limit) query = query.limit(parseInt(limit));
         const decks = await query;
         res.json(decks);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to fetch decks' });
     }
 });
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
         const deck = await Deck.findOne({ _id: req.params.id, userId: req.user.userId });
         if (!deck) return res.status(404).json({ error: 'Deck not found' });
         res.json(deck);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to fetch deck' });
     }
 });
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
         });
         await deck.save();
         res.status(201).json(deck);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to create deck' });
     }
 });
@@ -56,7 +56,7 @@ router.put('/:id', async (req, res) => {
         if (cards !== undefined) deck.cards = cards;
         await deck.save();
         res.json(deck);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to update deck' });
     }
 });
@@ -67,7 +67,7 @@ router.delete('/:id', async (req, res) => {
         const result = await Deck.deleteOne({ _id: req.params.id, userId: req.user.userId });
         if (result.deletedCount === 0) return res.status(404).json({ error: 'Deck not found' });
         res.json({ message: 'Deck deleted' });
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to delete deck' });
     }
 });

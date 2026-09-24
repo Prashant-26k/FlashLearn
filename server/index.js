@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Route imports
-import authRoutes from './routes/auth.js';
+import authRoutes, { callbackRouter as authCallbackRoutes } from './routes/auth.js';
 import deckRoutes from './routes/decks.js';
 import collectionRoutes from './routes/collections.js';
 import generateRoutes from './routes/generate.js';
@@ -41,7 +41,7 @@ passport.use(new GoogleStrategy(
     {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: '/auth/google/callback',
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/google/callback',
         proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -79,6 +79,7 @@ passport.deserializeUser(async (id, done) => {
 
 // ── Routes ──
 app.use('/auth', authRoutes);
+app.use('/', authCallbackRoutes);
 
 // Protected API routes
 app.use('/api/decks', authMiddleware, deckRoutes);
@@ -153,4 +154,3 @@ app.use((err, req, res, next) => {
 });
 
 start();
-
