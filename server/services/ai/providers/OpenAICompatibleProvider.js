@@ -1,5 +1,3 @@
-/* global process */
-
 import { ProviderError } from '../errors.js';
 
 export default class OpenAICompatibleProvider {

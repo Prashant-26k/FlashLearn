@@ -1,5 +1,3 @@
-/* global process */
-
 import OpenAICompatibleProvider from './OpenAICompatibleProvider.js';
 
 export default class GroqProvider extends OpenAICompatibleProvider {

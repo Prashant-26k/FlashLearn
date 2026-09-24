@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import QuizScoreGauge from '../components/ui/QuizScoreGauge';
 import StudyActivitySection from '../components/ui/StudyActivitySection';
 import CircularProgress from '../components/ui/CircularProgress';

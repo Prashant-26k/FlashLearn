@@ -24,7 +24,7 @@ router.get('/:deckId', async (req, res) => {
         res.setHeader('Content-Type', 'text/plain');
         res.setHeader('Content-Disposition', `attachment; filename="${deck.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt"`);
         res.send(content);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to export deck' });
     }
 });

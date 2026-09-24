@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import Modal from '../components/Modal';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import api from '../utils/api';
 
 function ToggleRow({ label, description, checked, onChange }) {

@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
         if (limit) query = query.limit(parseInt(limit));
         const collections = await query;
         res.json(collections);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to fetch collections' });
     }
 });
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
         });
         await collection.save();
         res.status(201).json(collection);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to create collection' });
     }
 });
@@ -42,7 +42,7 @@ router.put('/:id', async (req, res) => {
         if (deckIds !== undefined) col.deckIds = deckIds;
         await col.save();
         res.json(col);
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to update collection' });
     }
 });
@@ -53,7 +53,7 @@ router.delete('/:id', async (req, res) => {
         const result = await Collection.deleteOne({ _id: req.params.id, userId: req.user.userId });
         if (result.deletedCount === 0) return res.status(404).json({ error: 'Collection not found' });
         res.json({ message: 'Collection deleted' });
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to delete collection' });
     }
 });

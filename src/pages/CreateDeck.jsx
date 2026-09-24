@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FlashCard from '../components/FlashCard';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import api from '../utils/api';
 import { invalidateCache } from '../utils/cache';
 import GenerationLoader from '../components/GenerationLoader';

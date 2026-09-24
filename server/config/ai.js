@@ -1,5 +1,3 @@
-/* global process */
-
 const integer = (name, fallback, minimum = 0) => {
     const value = Number.parseInt(process.env[name] || '', 10);
     return Number.isFinite(value) && value >= minimum ? value : fallback;

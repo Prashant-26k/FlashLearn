@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 /* ─────────────────────────────────────────────
    Inject global styles (keyframes, scrollbar,
@@ -308,10 +308,9 @@ const DEMO_CARDS = [
 function DemoFlashCard() {
   const [flipped, setFlipped] = useState(false);
   const [index, setIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth <= 600);
     const handle = () => setIsMobile(window.innerWidth <= 600);
     window.addEventListener('resize', handle);
     return () => window.removeEventListener('resize', handle);
@@ -770,5 +769,3 @@ const sectionSubStyle = { fontSize: 16, color: "var(--text-secondary)", maxWidth
 const featureNumberStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 120, lineHeight: 1, color: "transparent", WebkitTextStroke: "1px var(--border)", marginBottom: -20, display: "block", userSelect: "none" };
 const featureTitleStyle = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: "var(--text-primary)", letterSpacing: "0.01em", marginBottom: 16 };
 const featureDescStyle = { fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.75, fontWeight: 300, marginBottom: 28 };
-const chipStyle = { position: "absolute", top: 20, left: 20, background: "var(--violet-dim)", border: "1px solid rgba(124,110,247,0.2)", borderRadius: 6, padding: "4px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--violet-bright)", textTransform: "uppercase" };
-const cardLabelStyle = { fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 20 };
