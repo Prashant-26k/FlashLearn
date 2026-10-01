@@ -12,7 +12,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:server": "node server/scripts/smoke-test.js",
+    "check:env": "node server/scripts/check-env.js",
+    "setup:hooks": "node server/scripts/install-hooks.js",
+    "preflight": "npm run lint && npm run test && npm run check:server && npm run check:env && npm run build"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
