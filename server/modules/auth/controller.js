@@ -44,10 +44,11 @@ export const authController = {
             return res.redirect(`${clientUrl}/login?error=oauth_not_configured`);
         }
 
+        const isProd = process.env.NODE_ENV === 'production';
         res.cookie(oauthStateCookie, state, {
             httpOnly: true,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: isProd ? 'none' : 'lax',
+            secure: isProd,
             maxAge: 10 * 60 * 1000,
         });
 
@@ -80,11 +81,12 @@ export const authController = {
             { expiresIn: '7d' }
         );
 
-        // Section 4: Secure + HttpOnly + SameSite cookie
+        const isProd = process.env.NODE_ENV === 'production';
+        // Section 4: Secure + HttpOnly + SameSite cookie (SameSite=None for cross-origin Netlify/Render)
         res.cookie('flashlearn_token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
@@ -110,7 +112,12 @@ export const authController = {
     },
 
     logout(req, res) {
-        res.clearCookie('flashlearn_token', { path: '/' });
+        const isProd = process.env.NODE_ENV === 'production';
+        res.clearCookie('flashlearn_token', {
+            path: '/',
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+        });
         res.json({ message: 'Logged out successfully' });
     },
 };

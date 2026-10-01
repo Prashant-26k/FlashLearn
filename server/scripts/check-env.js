@@ -33,8 +33,8 @@ if (!fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath));
 
     // 3. Essential variables
-    if (!envConfig.MONGO_URI) {
-        warnings.push('MONGO_URI is missing in .env (MongoDB connection will fail).');
+    if (!envConfig.MONGODB_URI && !envConfig.MONGO_URI) {
+        warnings.push('MONGODB_URI is missing in .env (MongoDB connection will fail).');
     }
 
     if (!envConfig.JWT_SECRET) {
@@ -43,9 +43,13 @@ if (!fs.existsSync(envPath)) {
         warnings.push('JWT_SECRET should be at least 16 characters long for cryptographic security.');
     }
 
-    // 4. Client URL / Cookie mismatch check
+    // 4. Client URL / SSL mismatch check
     const clientUrl = envConfig.CLIENT_URL || '';
     const nodeEnv = envConfig.NODE_ENV || 'development';
+
+    if (clientUrl.startsWith('https://localhost') || clientUrl.startsWith('https://127.0.0.1')) {
+        errors.push('CLIENT_URL is set to "https://localhost...". Vite runs plain HTTP locally without SSL. Change CLIENT_URL to "http://localhost:5173" to avoid ERR_SSL_PROTOCOL_ERROR.');
+    }
 
     if (nodeEnv === 'production' && (clientUrl.startsWith('http://localhost') || clientUrl.startsWith('http://127.0.0.1'))) {
         warnings.push('NODE_ENV is set to "production" while CLIENT_URL is localhost HTTP. Cookies with secure: true will be blocked by browsers on HTTP!');

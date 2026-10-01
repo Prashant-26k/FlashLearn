@@ -4,25 +4,19 @@ export function getBackendBaseUrl() {
     const raw = (
         import.meta.env.VITE_AUTH_BASE_URL
         || import.meta.env.VITE_API_BASE_URL
-        || (import.meta.env.DEV ? 'http://localhost:3001' : '')
+        || (import.meta.env.DEV ? 'http://localhost:3001' : 'https://flashlearn-7ayp.onrender.com')
     );
-    if (raw) {
-        return raw.replace(/\/api\/?$/, '').replace(/\/$/, '');
-    }
-    if (typeof window !== 'undefined' && window.location.hostname.includes('netlify.app')) {
-        return 'https://flashlearn-7ayp.onrender.com';
-    }
-    return '';
+    return raw.replace(/\/api\/?$/, '').replace(/\/$/, '');
 }
 
-const defaultBaseUrl = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app')
-    ? 'https://flashlearn-7ayp.onrender.com'
-    : '';
+const defaultBaseUrl = import.meta.env.DEV
+    ? ''
+    : (import.meta.env.VITE_API_BASE_URL || 'https://flashlearn-7ayp.onrender.com');
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || defaultBaseUrl,
+    baseURL: defaultBaseUrl,
     timeout: 30000,
-    withCredentials: true, // Section 4: Send HttpOnly session cookies
+    withCredentials: true, // Send HttpOnly session cookies when available
 });
 
 // Request interceptor: attach token, request ID
@@ -70,7 +64,12 @@ api.interceptors.response.use(
         // Section 4: 401 handling
         if (status === 401) {
             localStorage.removeItem('flashlearn_token');
-            if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            if (
+                !config?.skipAuthRedirect &&
+                typeof window !== 'undefined' &&
+                window.location.pathname !== '/login' &&
+                window.location.pathname !== '/'
+            ) {
                 window.location.href = '/login';
             }
         }

@@ -32,21 +32,30 @@ function readStoredUser() {
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(readStoredUser);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return Boolean(localStorage.getItem('flashlearn_token'));
+    });
 
-    // Section 4: Verify cookie session with server on initial mount
+    // Verify session with server on initial mount only when a stored token exists
     useEffect(() => {
         let mounted = true;
-        api.get('/auth/me')
+        const storedToken = typeof window !== 'undefined' ? localStorage.getItem('flashlearn_token') : null;
+
+        if (!storedToken) {
+            return;
+        }
+
+        api.get('/auth/me', { skipAuthRedirect: true })
             .then(res => {
                 if (mounted && res.data?.user) {
                     setUser(res.data.user);
                 }
             })
-            .catch(() => {
-                // If /auth/me fails (no valid cookie/header token)
-                if (mounted && !readStoredUser()) {
-                    setUser(null);
+            .catch((err) => {
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    localStorage.removeItem('flashlearn_token');
+                    if (mounted) setUser(null);
                 }
             })
             .finally(() => {

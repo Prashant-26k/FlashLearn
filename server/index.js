@@ -43,9 +43,28 @@ const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/
 // Trust proxy for secure cookies / HTTPS on Render and proxies
 app.set('trust proxy', 1);
 
+const allowedOrigins = [
+    CLIENT_URL,
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'https://studywithflashlearn.netlify.app',
+].filter(Boolean);
+
 // ── Core Middleware ──
 app.use(cors({
-    origin: CLIENT_URL,
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (
+            allowedOrigins.includes(origin) ||
+            origin.endsWith('.netlify.app') ||
+            origin.startsWith('http://localhost:') ||
+            origin.startsWith('http://127.0.0.1:')
+        ) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS origin not allowed: ${origin}`));
+    },
     credentials: true,
 }));
 app.use(cookieParser());
