@@ -38,7 +38,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
-const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+let rawClientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+if (rawClientUrl.startsWith('https://localhost') || rawClientUrl.startsWith('https://127.0.0.1')) {
+    rawClientUrl = rawClientUrl.replace(/^https:\/\//i, 'http://');
+}
+const CLIENT_URL = rawClientUrl;
 
 // Trust proxy for secure cookies / HTTPS on Render and proxies
 app.set('trust proxy', 1);

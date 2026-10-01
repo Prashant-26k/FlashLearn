@@ -2,46 +2,81 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../../models/User.js';
 
-const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+export function getClientUrl() {
+    let url = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+    if (url.startsWith('https://localhost') || url.startsWith('https://127.0.0.1')) {
+        url = url.replace(/^https:\/\//i, 'http://');
+    }
+    return url;
+}
+
 const oauthStateCookie = 'flashlearn_oauth_state';
 
-function createOAuthState() {
+export function createOAuthState() {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
         throw new Error('JWT_SECRET is not configured');
     }
+    const timestamp = Date.now().toString();
     const value = crypto.randomBytes(32).toString('hex');
+    const dataToSign = `${value}.${timestamp}`;
     const signature = crypto
         .createHmac('sha256', secret)
-        .update(value)
+        .update(dataToSign)
         .digest('hex');
-    return `${value}.${signature}`;
+    return `${dataToSign}.${signature}`;
 }
 
-function isValidOAuthState(state) {
-    if (!state || !state.includes('.')) return false;
+export function isValidOAuthState(state) {
+    if (!state || typeof state !== 'string') return false;
+    const parts = state.split('.');
     const secret = process.env.JWT_SECRET;
-    const [value, signature] = state.split('.');
-    const expectedSignature = crypto
-        .createHmac('sha256', secret)
-        .update(value)
-        .digest('hex');
-    const provided = Buffer.from(signature, 'hex');
-    const expected = Buffer.from(expectedSignature, 'hex');
+    if (!secret) return false;
 
-    return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+    // 3-part format: value.timestamp.signature
+    if (parts.length === 3) {
+        const [value, timestamp, signature] = parts;
+        const time = parseInt(timestamp, 10);
+        // Expire after 15 minutes (900,000 ms)
+        if (isNaN(time) || Math.abs(Date.now() - time) > 15 * 60 * 1000) {
+            return false;
+        }
+        const dataToSign = `${value}.${timestamp}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', secret)
+            .update(dataToSign)
+            .digest('hex');
+        const provided = Buffer.from(signature, 'hex');
+        const expected = Buffer.from(expectedSignature, 'hex');
+        return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+    }
+
+    // 2-part legacy format: value.signature
+    if (parts.length === 2) {
+        const [value, signature] = parts;
+        const expectedSignature = crypto
+            .createHmac('sha256', secret)
+            .update(value)
+            .digest('hex');
+        const provided = Buffer.from(signature, 'hex');
+        const expected = Buffer.from(expectedSignature, 'hex');
+        return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+    }
+
+    return false;
 }
 
 export const authController = {
     initiateGoogle(req, res, next) {
+        const targetClientUrl = getClientUrl();
         if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-            return res.redirect(`${clientUrl}/login?error=oauth_not_configured`);
+            return res.redirect(`${targetClientUrl}/login?error=oauth_not_configured`);
         }
         let state;
         try {
             state = createOAuthState();
         } catch {
-            return res.redirect(`${clientUrl}/login?error=oauth_not_configured`);
+            return res.redirect(`${targetClientUrl}/login?error=oauth_not_configured`);
         }
 
         const isProd = process.env.NODE_ENV === 'production';
@@ -49,7 +84,8 @@ export const authController = {
             httpOnly: true,
             sameSite: isProd ? 'none' : 'lax',
             secure: isProd,
-            maxAge: 10 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
+            path: '/', // Ensure cookie is sent to /google/callback
         });
 
         // Continue to passport
@@ -60,11 +96,25 @@ export const authController = {
     validateState(req, res, next) {
         const state = req.query.state;
         const storedState = req.cookies?.[oauthStateCookie];
+        const targetClientUrl = getClientUrl();
 
-        res.clearCookie(oauthStateCookie);
-        if (!storedState || storedState !== state || !isValidOAuthState(state)) {
-            return res.redirect(`${clientUrl}/login?error=oauth_state_invalid`);
+        const isProd = process.env.NODE_ENV === 'production';
+        res.clearCookie(oauthStateCookie, {
+            path: '/',
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+        });
+
+        // 1. Cryptographically verify the state signature & freshness
+        if (!state || !isValidOAuthState(state)) {
+            return res.redirect(`${targetClientUrl}/login?error=oauth_state_invalid`);
         }
+
+        // 2. If browser preserved cookie, verify match
+        if (storedState && storedState !== state) {
+            return res.redirect(`${targetClientUrl}/login?error=oauth_state_invalid`);
+        }
+
         next();
     },
 
@@ -92,7 +142,7 @@ export const authController = {
         });
 
         // Also pass hash token for client compatibility if cookie isn't accepted
-        res.redirect(`${clientUrl}/#token=${encodeURIComponent(token)}`);
+        res.redirect(`${getClientUrl()}/#token=${encodeURIComponent(token)}`);
     },
 
     async getMe(req, res) {

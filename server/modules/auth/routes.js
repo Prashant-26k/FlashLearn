@@ -1,9 +1,7 @@
 import express from 'express';
 import passport from 'passport';
-import { authController } from './controller.js';
+import { authController, getClientUrl } from './controller.js';
 import authMiddleware from '../../middleware/auth.js';
-
-const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 const router = express.Router();
 export const callbackRouter = express.Router();
@@ -22,7 +20,12 @@ router.get('/google',
 // Google OAuth callback
 callbackRouter.get('/google/callback',
     authController.validateState,
-    passport.authenticate('google', { session: false, failureRedirect: `${clientUrl}/login?error=google_auth_failed` }),
+    (req, res, next) => {
+        passport.authenticate('google', {
+            session: false,
+            failureRedirect: `${getClientUrl()}/login?error=google_auth_failed`,
+        })(req, res, next);
+    },
     authController.handleCallback
 );
 
