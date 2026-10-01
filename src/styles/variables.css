@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: wrap !important;
+  }
+
+  p {
+    text-wrap: wrap !important;
+  }
+}
+
+:root {
+  --bg-base: #0a0a0a;
+  --bg-surface: #121212;
+  --bg-elevated: #1e1e1e;
+  --border-subtle: #2a2a2a;
+  --border-active: #454545;
+  --text-primary: #ffffff;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --accent: #4b2bee;
+  --accent-hover: #6448f2;
+  --accent-glow: rgba(75, 43, 238, 0.18);
+  --success: #34d399;
+  --warning: #E8A320;
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 99px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-hero: 48px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'DM Mono', 'Fira Code', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override Tailwind v4 Preflight text-wrap balance/pretty */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+div {
+  text-wrap: wrap;
+}
+
+select {
+  min-width: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
