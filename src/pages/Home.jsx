@@ -181,15 +181,6 @@ const GLOBAL_CSS = `
   .col-row.c3::before { background: var(--warning); }
   .col-row.c4::before { background: var(--danger); }
 
-  /* featured testimonial top bar */
-  .testimonial-featured::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--violet), transparent);
-  }
-
   /* hero grid bg */
   .hero-grid::after {
     content: '';
@@ -202,11 +193,6 @@ const GLOBAL_CSS = `
     pointer-events: none;
     mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
   }
-
-  /* masonry */
-  .masonry { columns: 3; column-gap: 20px; }
-  @media (max-width: 1024px) { .masonry { columns: 2; } }
-  @media (max-width: 640px)  { .masonry { columns: 1; } }
 
   /* feature reverse */
   .feature-reverse { direction: rtl; }
@@ -453,15 +439,10 @@ export default function Home() {
 
   const marqueeItems = ["Text Paste", "PDF Upload", "Word Documents", "Quiz Mode", "Collections", "Gemini AI", "Spaced Repetition", "Export Decks", "Auto-Save"];
 
-  const testimonials = [
-    { featured: true, stars: 5, quote: <>I uploaded my entire operating systems textbook as a PDF and had <strong>180 flashcards in under 60 seconds.</strong> Passed my exam with the highest score in the class.</>, name: "Arjun Mehta", role: "CS · IIT Delhi", initials: "A", gradient: "linear-gradient(135deg,#7c6ef7,#a598ff)", topReview: true },
-    { featured: false, stars: 5, quote: <>The quiz mode is <strong>addictive.</strong> I set a 15-second timer per card and suddenly retention went through the roof. This actually works.</>, name: "Sofia Reyes", role: "Med Student · Madrid", initials: "S", gradient: "linear-gradient(135deg,#4caf82,#6dcfa2)" },
-    { featured: false, stars: 5, quote: <>Switched from Anki. The UI alone was enough — but the <strong>AI-generated cards are genuinely better</strong> than the ones I spent hours writing myself.</>, name: "Kai Lindberg", role: "Law Student · Stockholm", initials: "K", gradient: "linear-gradient(135deg,#e8a320,#f0c060)" },
-    { featured: false, stars: 5, quote: <>Pasted my biochem lecture notes at 11pm before a 9am exam. <strong>Generated 40 cards, studied for 2 hours, got an A.</strong> This is insane.</>, name: "Priya Nair", role: "Biochemistry · UCL", initials: "P", gradient: "linear-gradient(135deg,#e05252,#f07070)" },
-    { featured: false, stars: 5, quote: <>The Collections feature changed how I study. I have every subject organized, can quiz across multiple decks simultaneously, and <strong>actually track my progress.</strong></>, name: "Marcus Chen", role: "MBA · INSEAD", initials: "M", gradient: "linear-gradient(135deg,#7c6ef7,#5e52c0)" },
-    { featured: true, stars: 5, quote: <>I teach a university course. I started using FlashLearn to build study materials for my students. Turning my course material into useful study cards is remarkably fast.</>, name: "Dr. Elena Rossi", role: "Professor · Bocconi", initials: "D", gradient: "linear-gradient(135deg,#4caf82,#2d8f65)", featuredLabel: "Featured" },
-    { featured: false, stars: 4, quote: <>Finally a flashcard tool that <strong>doesn't look like it was designed in 2009.</strong> The dark mode is beautiful, the cards are clean, and the whole flow just works.</>, name: "Jordan Wells", role: "UX Designer · Berlin", initials: "J", gradient: "linear-gradient(135deg,#e8a320,#c07010)" },
-    { featured: false, stars: 5, quote: <>Uploaded a 48-page DOCX thesis. Got <strong>50 high-quality cards</strong> that perfectly captured the key arguments. Used them for my viva prep. First class result.</>, name: "Olivia Thompson", role: "PhD Candidate · Oxford", initials: "O", gradient: "linear-gradient(135deg,#a598ff,#7c6ef7)" },
+  const navLinks = [
+    ["#features", "Features"],
+    ["#about", "About"],
+    ["#free", "Free Access"],
   ];
 
   return (
@@ -488,7 +469,7 @@ export default function Home() {
             <ul className="home-nav-desktop" style={{
                 flex: 1, justifyContent: 'center', gap: 32, listStyle: 'none', margin: 0, padding: 0,
             }}>
-              {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label]) => (
+              {navLinks.map(([href, label]) => (
                 <li key={label}>
                   <a href={href} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
                     onMouseEnter={e => (e.target.style.color = "var(--text-primary)")}
@@ -557,7 +538,7 @@ export default function Home() {
             borderTop: menuOpen ? '1px solid var(--border-subtle)' : 'none',
             background: 'var(--obsidian)',
         }} className="home-nav-mobile-dropdown">
-            {[["#features", "Features"], ["#testimonials", "Reviews"], ["#cta", "Pricing"]].map(([href, label], i) => (
+            {navLinks.map(([href, label], i) => (
                 <a key={label} href={href} onClick={() => setMenuOpen(false)} style={{
                     display: 'block', textDecoration: 'none',
                     padding: '14px 24px',
@@ -595,16 +576,22 @@ export default function Home() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
               Generate Free Deck
             </button>
-            <button className="home-cta-btn" style={heroSecondaryBtn}>Watch Demo ↗</button>
+            <a href="#features" className="home-cta-btn" style={{ ...heroSecondaryBtn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              Explore Features ↓
+            </a>
           </div>
 
-          <div className="hero-stats" style={{ display: "flex", gap: 32, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
-            {[["40", "K+", "Cards Generated"], ["4", "×", "Faster Retention"], ["98", "%", "Accuracy Rate"]].map(([val, suffix, label]) => (
-              <div key={label}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: "var(--text-primary)", lineHeight: 1, marginBottom: 4 }}>
-                  {val}<span style={{ color: "var(--violet)" }}>{suffix}</span>
+          <div className="hero-stats" style={{ display: "flex", gap: 28, marginTop: 52, paddingTop: 32, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
+            {[
+              ["Gemini AI", "Google GenAI Engine"],
+              ["Multiple Formats", "Text, PDF & Word"],
+              ["Quiz Mode", "Interactive Review"],
+            ].map(([title, subtitle]) => (
+              <div key={title}>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: "var(--text-primary)", lineHeight: 1.1, marginBottom: 4, letterSpacing: "0.02em" }}>
+                  {title}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>{subtitle}</div>
               </div>
             ))}
           </div>
@@ -700,66 +687,139 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section id="testimonials" style={{ padding: "140px 80px", background: "var(--charcoal)", borderTop: "1px solid var(--border)" }}>
-        <div style={{ marginBottom: 64 }}>
-          <span style={eyebrowStyle}>Wall of Love</span>
-          <h2 style={sectionTitleStyle}>Students Who<br />Actually Pass.</h2>
+      {/* ── ABOUT ── */}
+      <section id="about" style={{ padding: "140px 80px", background: "var(--charcoal)", borderTop: "1px solid var(--border)", position: "relative" }}>
+        <div className="reveal home-features-header" style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 64px" }}>
+          <span style={eyebrowStyle}>About the Project</span>
+          <h2 style={sectionTitleStyle}>Built by<br /><span style={{ color: "var(--violet)" }}>Prashant-26k</span></h2>
+          <p style={sectionSubStyle}>
+            FlashLearn is an open project built to eliminate the tedious hours spent creating flashcards, giving learners more time to master concepts.
+          </p>
         </div>
 
-        <div className="masonry">
-          {testimonials.map((t, i) => (
-            <div key={i} className={`reveal ${i % 3 === 1 ? "reveal-delay-1" : i % 3 === 2 ? "reveal-delay-2" : ""} ${t.featured ? "testimonial-featured" : ""}`}
-              style={{
-                breakInside: "avoid", background: t.featured ? "linear-gradient(135deg,#1d1d25 0%,#17171f 100%)" : "var(--elevated)",
-                border: t.featured ? "1px solid rgba(124,110,247,0.3)" : "1px solid var(--border)",
-                borderRadius: 16, padding: 28, marginBottom: 20,
-                position: "relative", transition: "transform 0.3s, border-color 0.3s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = t.featured ? "rgba(124,110,247,0.5)" : "var(--border-bright)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderColor = t.featured ? "rgba(124,110,247,0.3)" : "var(--border)"; }}
-            >
-              <div style={{ color: "var(--warning)", fontSize: 12, letterSpacing: 1, marginBottom: 12 }}>{"★".repeat(t.stars)}{"☆".repeat(5 - t.stars)}</div>
-              {(t.topReview || t.featuredLabel) && (
-                <div style={{ position: "absolute", top: 20, right: 20, background: "rgba(232,163,32,0.1)", border: "1px solid rgba(232,163,32,0.3)", borderRadius: 20, padding: "2px 8px", fontFamily: "'DM Mono', monospace", fontSize: 10, color: "var(--warning)" }}>
-                  {t.topReview ? "Top Review" : t.featuredLabel}
-                </div>
-              )}
-              {t.featured && <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 64, lineHeight: 0.8, color: "var(--violet)", opacity: 0.3, marginBottom: 8, display: "block" }}>"</span>}
-              <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 20, fontWeight: 300 }}>{t.quote}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: t.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: "#fff", flexShrink: 0 }}>{t.initials}</div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{t.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "'DM Mono', monospace" }}>{t.role}</div>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div className="reveal f-card" style={{
+            background: "var(--elevated)", border: "1px solid var(--border)",
+            borderRadius: 16, padding: "40px 48px", position: "relative", overflow: "hidden",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, flexWrap: "wrap" }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "linear-gradient(135deg, var(--violet), var(--violet-bright))",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: "#fff", flexShrink: 0
+              }}>
+                PK
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Prashant</div>
+                <div style={{ fontSize: 12, color: "var(--violet-bright)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Creator & Developer · FlashLearn
                 </div>
               </div>
+              <a
+                href="https://github.com/Prashant-26k"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  marginLeft: "auto",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--text-primary)",
+                  fontSize: 13,
+                  fontFamily: "'DM Mono', monospace",
+                  textDecoration: "none",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--violet)"; e.currentTarget.style.color = "var(--violet-bright)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                GitHub Profile ↗
+              </a>
             </div>
-          ))}
+
+            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 18, fontWeight: 300 }}>
+              FlashLearn was created to solve a common study hurdle: spending excessive time formatting and writing flashcards instead of actively learning. By integrating Google Gemini AI with document parsing for PDFs and Word files, FlashLearn turns study notes into structured flashcard sets instantly.
+            </p>
+
+            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 28, fontWeight: 300 }}>
+              Built with React, Express, and MongoDB, the focus remains on fast deck generation, organized collection management, and distraction-free study sessions with interactive quiz modes.
+            </p>
+
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 24 }}>
+              <a
+                href="https://github.com/Prashant-26k/FlashLearn"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  fontSize: 13, color: "var(--violet-bright)", textDecoration: "none",
+                  fontFamily: "'DM Mono', monospace"
+                }}
+              >
+                <span>→</span> View FlashLearn Repository
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section id="cta" style={{ padding: "160px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      {/* ── FREE FOR EVERYONE ── */}
+      <section id="free" style={{ padding: "140px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, background: "radial-gradient(ellipse, rgba(124,110,247,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <span className="reveal" style={eyebrowStyle}>Free to Start · No Credit Card</span>
-        <h2 className="reveal" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(64px,7vw,100px)", lineHeight: 0.93, color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: 24 }}>
-          Start Learning<br />
-          <span style={{ color: "var(--violet)" }}>Right Now.</span>
+        <span className="reveal" style={eyebrowStyle}>Open Access</span>
+        <h2 className="reveal" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(56px,6vw,90px)", lineHeight: 0.95, color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: 20 }}>
+          Free for Everyone
         </h2>
-        <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7 }}>Generate your first AI-powered flashcard deck in under 30 seconds. No setup, no friction.</p>
+        <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 620, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7 }}>
+          FlashLearn is currently free for everyone. Please use AI generation responsibly so shared resources remain fast and available for all learners.
+        </p>
+
+        {/* Responsible Use Guidance */}
+        <div className="reveal f-card" style={{
+          maxWidth: 780, margin: "0 auto 48px", textAlign: "left",
+          background: "var(--elevated)", border: "1px solid var(--border)",
+          borderRadius: 16, padding: "32px 36px", position: "relative"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <span style={{ color: "var(--violet-bright)", fontSize: 16, fontFamily: "'DM Mono', monospace" }}>[i]</span>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif" }}>Responsible Use Guidelines</h3>
+          </div>
+          <ul style={{ listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 0 }}>
+            {[
+              "Generate only the study material you actually need.",
+              "Avoid repeatedly generating the same content without a reason.",
+              "Do not send automated, scripted, or abusive requests.",
+              "Large documents may consume more processing resources.",
+              "Be mindful that AI generation uses shared infrastructure.",
+              "Availability and fair-use limits may evolve as the project grows.",
+            ].map((item) => (
+              <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                <span style={{ color: "var(--violet)", fontSize: 13, marginTop: 1 }}>→</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="reveal" style={{ display: "flex", gap: 14, justifyContent: "center", alignItems: "center" }}>
-          <button onClick={login} className="home-cta-btn" style={{ height: 52, padding: "0 32px", background: "var(--violet)", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.25s" }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-bright)"; e.currentTarget.style.boxShadow = "0 0 48px rgba(124,110,247,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "var(--violet)"; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.transform = ""; }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-            Generate Free Deck
-          </button>
-          <button className="home-cta-btn" style={{ height: 52, padding: "0 32px", background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 16, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", transition: "all 0.25s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-bright)"; e.currentTarget.style.color = "var(--text-primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-          >View Pricing</button>
+          {isAuthenticated ? (
+            <button onClick={() => navigate('/dashboard')} className="home-cta-btn" style={{ ...heroPrimaryBtn, height: 52, padding: "0 32px", fontSize: 16 }}>
+              Go to Dashboard →
+            </button>
+          ) : (
+            <button onClick={login} className="home-cta-btn" style={{ ...heroPrimaryBtn, height: 52, padding: "0 32px", fontSize: 16 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+              Start Learning Free
+            </button>
+          )}
         </div>
       </section>
 
@@ -769,12 +829,21 @@ export default function Home() {
           <span style={{ color: "var(--violet)" }}>Flash</span>Learn
         </div>
         <ul style={{ display: "flex", gap: 28, listStyle: "none", flexWrap: "wrap" }}>
-          {["Privacy", "Terms", "Contact", "GitHub"].map(link => (
-            <li key={link}>
-              <a href="#" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", textTransform: "uppercase", transition: "color 0.2s" }}
+          {[
+            { label: "Features", href: "#features" },
+            { label: "About", href: "#about" },
+            { label: "Free Access", href: "#free" },
+            { label: "GitHub", href: "https://github.com/Prashant-26k/FlashLearn", external: true },
+          ].map(({ label, href, external }) => (
+            <li key={label}>
+              <a
+                href={href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+                style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", textTransform: "uppercase", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.target.style.color = "var(--text-secondary)")}
                 onMouseLeave={e => (e.target.style.color = "var(--text-muted)")}
-              >{link}</a>
+              >{label}</a>
             </li>
           ))}
         </ul>

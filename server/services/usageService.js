@@ -23,7 +23,7 @@ async function atomicIncrement(Model, filter, increment, limit, label) {
         const result = await Model.findOneAndUpdate(
             { ...filter, [label]: { $lt: limit } },
             { $inc: { [label]: increment }, $setOnInsert: { createdAt: new Date() } },
-            { upsert: true, new: true, setDefaultsOnInsert: true },
+            { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
         );
         if (!result) throw new UsageLimitError(`Daily ${label} limit reached`);
         return result;
@@ -32,7 +32,7 @@ async function atomicIncrement(Model, filter, increment, limit, label) {
             const result = await Model.findOneAndUpdate(
                 { ...filter, [label]: { $lt: limit } },
                 { $inc: { [label]: increment } },
-                { new: true },
+                { returnDocument: 'after' },
             );
             if (result) return result;
         }
@@ -94,7 +94,7 @@ export async function reserveProviderCall(userId) {
         await UserUsage.findOneAndUpdate(
             { userId, date },
             { $inc: { providerCalls: 1 }, $setOnInsert: { createdAt: new Date() } },
-            { upsert: true, new: true, setDefaultsOnInsert: true },
+            { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
         );
     } catch (error) {
         await GlobalUsage.findOneAndUpdate({ date }, { $inc: { providerCalls: -1 } });
@@ -107,6 +107,6 @@ export async function recordGeneratedCards(userId, flashcardsGenerated) {
     await UserUsage.findOneAndUpdate(
         { userId, date },
         { $inc: { flashcardsGenerated } },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
     );
 }

@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import app from '../../server/index.js';
 
 describe('Express API Integration Tests', () => {
     let testToken;
     const testUserId = '507f1f77bcf86cd799439011';
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const secret = process.env.JWT_SECRET || 'dev_secret_key_at_least_16_characters_long';
         testToken = jwt.sign(
             {
@@ -18,6 +19,23 @@ describe('Express API Integration Tests', () => {
             secret,
             { expiresIn: '1h' }
         );
+
+        const mongoUri = process.env.MONGODB_URI;
+        if (mongoUri && mongoose.connection.readyState === 0) {
+            try {
+                await mongoose.connect(mongoUri);
+            } catch {
+                mongoose.set('bufferCommands', false);
+            }
+        } else if (mongoose.connection.readyState === 0) {
+            mongoose.set('bufferCommands', false);
+        }
+    });
+
+    afterAll(async () => {
+        if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+        }
     });
 
     describe('Health & Observability Endpoints', () => {
@@ -57,20 +75,30 @@ describe('Express API Integration Tests', () => {
             expect(res.body.error.requestId).toBeDefined();
         });
 
-        it('accepts valid Bearer token', async () => {
+        it('accepts valid Bearer token for GET /api/decks and returns 200 array', async () => {
             const res = await request(app)
-                .get('/api/v1/decks')
+                .get('/api/decks')
                 .set('Authorization', `Bearer ${testToken}`);
-            // If DB is not connected in test, it returns 200 [] or 500 database error formatted
-            expect([200, 500]).toContain(res.status);
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
+            expect(res.headers['x-request-id']).toBeDefined();
+        });
+
+        it('accepts valid query params for GET /api/quiz/stats and returns 200 object', async () => {
+            const res = await request(app)
+                .get('/api/quiz/stats?tzOffset=-330')
+                .set('Authorization', `Bearer ${testToken}`);
+            expect(res.status).toBe(200);
+            expect(res.body.quizzesTaken).toBeDefined();
             expect(res.headers['x-request-id']).toBeDefined();
         });
 
         it('accepts authentication via HttpOnly cookie', async () => {
             const res = await request(app)
-                .get('/api/v1/decks')
+                .get('/api/decks')
                 .set('Cookie', [`flashlearn_token=${testToken}`]);
-            expect([200, 500]).toContain(res.status);
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
         });
     });
 

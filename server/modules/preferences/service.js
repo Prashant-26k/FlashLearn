@@ -16,7 +16,7 @@ export const preferencesService = {
         const user = await User.findByIdAndUpdate(
             userId,
             { learningStyle },
-            { new: true, runValidators: true, select: 'learningStyle' },
+            { returnDocument: 'after', runValidators: true, select: 'learningStyle' },
         );
         if (!user) {
             throw new NotFoundError('User not found', 'USER_NOT_FOUND');

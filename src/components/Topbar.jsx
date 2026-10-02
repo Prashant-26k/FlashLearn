@@ -48,10 +48,10 @@ export default function Topbar({ isMenuOpen, onMenuToggle }) {
 
                 {/* Logo */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.03em' }}>
-                        <span style={{ color: 'var(--accent)' }}>FLASH</span>
-                        <span style={{ color: 'var(--text-primary)' }}>LEARN</span>
-                    </span>
+                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: '0.05em', lineHeight: 1 }}>
+                        <span style={{ color: 'var(--text-link)' }}>Flash</span>
+                        <span style={{ color: 'var(--text-primary)' }}>Learn</span>
+                    </div>
                 </div>
             </div>
 

@@ -3,10 +3,24 @@ import crypto from 'crypto';
 import User from '../../models/User.js';
 
 export function getClientUrl() {
-    let url = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+    let url = (process.env.CLIENT_URL || '').trim().replace(/\/$/, '');
+
+    // Fix: https://localhost is invalid (Vite uses plain HTTP locally)
     if (url.startsWith('https://localhost') || url.startsWith('https://127.0.0.1')) {
         url = url.replace(/^https:\/\//i, 'http://');
     }
+
+    if (!url) {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[FATAL] CLIENT_URL is not set in production. Set CLIENT_URL=https://studywithflashlearn.netlify.app on Render.');
+        }
+        url = 'http://localhost:5173'; // safe local dev fallback only
+    }
+
+    if (process.env.NODE_ENV === 'production' && (url.startsWith('http://localhost') || url.startsWith('http://127.0.0.1'))) {
+        console.error('[FATAL] CLIENT_URL is set to a localhost URL in production. Set CLIENT_URL=https://studywithflashlearn.netlify.app on Render.');
+    }
+
     return url;
 }
 
