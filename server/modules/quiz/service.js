@@ -1,5 +1,5 @@
 import QuizResult from '../../models/QuizResult.js';
-import { calculateQuizStats } from '../../services/quizStats.js';
+import { calculateQuizStats } from './stats.js';
 
 export const quizService = {
     async saveResult(data, userId) {
