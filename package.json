@@ -1,13 +1,15 @@
 {
-  "name": "flashgenius",
+  "name": "flashlearn",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "vite",
     "start": "node server/index.js",
     "server": "node server/index.js",
-    "test:db": "node testIndex.js",
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -19,9 +21,6 @@
     "preflight": "npm run lint && npm run test && npm run check:server && npm run check:env && npm run build"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
     "@google/generative-ai": "^0.24.1",
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
@@ -40,14 +39,11 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
-    "tailwindcss": "^4.2.1",
     "winston": "^3.19.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",

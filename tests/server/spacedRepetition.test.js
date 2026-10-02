@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getStudyQueue, reviewCard } from '../../server/services/spacedRepetition.js';
+import { getStudyQueue, reviewCard } from '../../src/utils/spacedRepetition.js';
 
 describe('Spaced Repetition Engine', () => {
     it('returns cards due for review first', () => {
