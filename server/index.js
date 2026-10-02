@@ -38,7 +38,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
-let rawClientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+const isProduction = process.env.NODE_ENV === 'production';
+let rawClientUrl = (process.env.CLIENT_URL || (isProduction ? '' : 'http://localhost:5173')).trim().replace(/\/$/, '');
 if (rawClientUrl.startsWith('https://localhost') || rawClientUrl.startsWith('https://127.0.0.1')) {
     rawClientUrl = rawClientUrl.replace(/^https:\/\//i, 'http://');
 }
@@ -49,10 +50,12 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
     CLIENT_URL,
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
     'https://studywithflashlearn.netlify.app',
+    ...(!isProduction ? [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+    ] : []),
 ].filter(Boolean);
 
 // ── Core Middleware ──
@@ -60,10 +63,7 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         if (
-            allowedOrigins.includes(origin) ||
-            origin.endsWith('.netlify.app') ||
-            origin.startsWith('http://localhost:') ||
-            origin.startsWith('http://127.0.0.1:')
+            allowedOrigins.includes(origin)
         ) {
             return callback(null, true);
         }
