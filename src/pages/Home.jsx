@@ -688,7 +688,7 @@ export default function Home() {
       </section>
 
       {/* ── ABOUT ── */}
-      <section id="about" style={{ padding: "140px 80px", background: "var(--charcoal)", borderTop: "1px solid var(--border)", position: "relative" }}>
+      <section id="about" className="home-about-section" style={{ padding: "140px 80px", background: "var(--charcoal)", borderTop: "1px solid var(--border)", position: "relative" }}>
         <div className="reveal home-features-header" style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 64px" }}>
           <span style={eyebrowStyle}>About the Project</span>
           <h2 style={sectionTitleStyle}>Built by<br /><span style={{ color: "var(--violet)" }}>Prashant-26k</span></h2>
@@ -698,13 +698,13 @@ export default function Home() {
         </div>
 
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div className="reveal f-card" style={{
+          <div className="reveal f-card home-about-card" style={{
             background: "var(--elevated)", border: "1px solid var(--border)",
             borderRadius: 16, padding: "40px 48px", position: "relative", overflow: "hidden",
             boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, flexWrap: "wrap" }}>
-              <div style={{
+            <div className="home-about-header" style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, flexWrap: "wrap" }}>
+              <div className="home-about-avatar" style={{
                 width: 56, height: 56, borderRadius: "50%",
                 background: "linear-gradient(135deg, var(--violet), var(--violet-bright))",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -712,7 +712,7 @@ export default function Home() {
               }}>
                 PK
               </div>
-              <div>
+              <div className="home-about-info">
                 <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Prashant</div>
                 <div style={{ fontSize: 12, color: "var(--violet-bright)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Creator & Developer · FlashLearn
@@ -722,6 +722,7 @@ export default function Home() {
                 href="https://github.com/Prashant-26k"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="home-about-gh-btn"
                 style={{
                   marginLeft: "auto",
                   display: "inline-flex",
@@ -745,11 +746,11 @@ export default function Home() {
               </a>
             </div>
 
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 18, fontWeight: 300 }}>
+            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 18, fontWeight: 300, wordBreak: "break-word", overflowWrap: "break-word" }}>
               FlashLearn was created to solve a common study hurdle: spending excessive time formatting and writing flashcards instead of actively learning. By integrating Google Gemini AI with document parsing for PDFs and Word files, FlashLearn turns study notes into structured flashcard sets instantly.
             </p>
 
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 28, fontWeight: 300 }}>
+            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 28, fontWeight: 300, wordBreak: "break-word", overflowWrap: "break-word" }}>
               Built with React, Express, and MongoDB, the focus remains on fast deck generation, organized collection management, and distraction-free study sessions with interactive quiz modes.
             </p>
 
@@ -758,10 +759,12 @@ export default function Home() {
                 href="https://github.com/Prashant-26k/FlashLearn"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="home-about-repo-link"
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   fontSize: 13, color: "var(--violet-bright)", textDecoration: "none",
-                  fontFamily: "'DM Mono', monospace"
+                  fontFamily: "'DM Mono', monospace",
+                  wordBreak: "break-word", overflowWrap: "break-word"
                 }}
               >
                 <span>→</span> View FlashLearn Repository
@@ -772,27 +775,27 @@ export default function Home() {
       </section>
 
       {/* ── FREE FOR EVERYONE ── */}
-      <section id="free" style={{ padding: "140px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <section id="free" className="home-free-section" style={{ padding: "140px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, background: "radial-gradient(ellipse, rgba(124,110,247,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
         <span className="reveal" style={eyebrowStyle}>Open Access</span>
-        <h2 className="reveal" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(56px,6vw,90px)", lineHeight: 0.95, color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: 20 }}>
+        <h2 className="reveal home-free-title" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(52px,6vw,90px)", lineHeight: 0.95, color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: 20 }}>
           Free for Everyone
         </h2>
-        <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 620, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7 }}>
+        <p className="reveal" style={{ fontSize: 16, color: "var(--text-secondary)", maxWidth: 620, margin: "0 auto 40px", fontWeight: 300, lineHeight: 1.7, wordBreak: "break-word", overflowWrap: "break-word" }}>
           FlashLearn is currently free for everyone. Please use AI generation responsibly so shared resources remain fast and available for all learners.
         </p>
 
         {/* Responsible Use Guidance */}
-        <div className="reveal f-card" style={{
+        <div className="reveal f-card home-free-card" style={{
           maxWidth: 780, margin: "0 auto 48px", textAlign: "left",
           background: "var(--elevated)", border: "1px solid var(--border)",
           borderRadius: 16, padding: "32px 36px", position: "relative"
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-            <span style={{ color: "var(--violet-bright)", fontSize: 16, fontFamily: "'DM Mono', monospace" }}>[i]</span>
+          <div className="home-free-header" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <span style={{ color: "var(--violet-bright)", fontSize: 16, fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>[i]</span>
             <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif" }}>Responsible Use Guidelines</h3>
           </div>
-          <ul style={{ listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 0 }}>
+          <ul className="home-free-grid" style={{ listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 0 }}>
             {[
               "Generate only the study material you actually need.",
               "Avoid repeatedly generating the same content without a reason.",
@@ -801,8 +804,8 @@ export default function Home() {
               "Be mindful that AI generation uses shared infrastructure.",
               "Availability and fair-use limits may evolve as the project grows.",
             ].map((item) => (
-              <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                <span style={{ color: "var(--violet)", fontSize: 13, marginTop: 1 }}>→</span>
+              <li key={item} className="home-free-item" style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, wordBreak: "break-word", overflowWrap: "break-word" }}>
+                <span style={{ color: "var(--violet)", fontSize: 13, marginTop: 1, flexShrink: 0 }}>→</span>
                 <span>{item}</span>
               </li>
             ))}

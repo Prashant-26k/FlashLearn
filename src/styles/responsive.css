@@ -238,6 +238,34 @@
   flex-direction: column;
 }
 
+.home-about-section,
+.home-free-section {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.home-about-card,
+.home-free-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.home-free-grid {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.home-free-item {
+  box-sizing: border-box;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 /* ── Tablet ≤1024px ── */
 @media (max-width: 1024px) {
   /* Hero grid → single column */
@@ -287,6 +315,19 @@
     padding-left: 32px !important;
     padding-right: 32px !important;
   }
+  /* About & Free sections */
+  #about,
+  .home-about-section,
+  #free,
+  .home-free-section {
+    padding: 80px 32px !important;
+  }
+  .home-about-card {
+    padding: 32px 32px !important;
+  }
+  .home-free-card {
+    padding: 28px 28px !important;
+  }
   /* Testimonials section */
   #testimonials {
     padding: 80px 32px !important;
@@ -332,6 +373,26 @@
   /* Feature number — smaller */
   .feature-number {
     font-size: 80px !important;
+  }
+  /* About & Free sections */
+  #about,
+  .home-about-section,
+  #free,
+  .home-free-section {
+    padding: 60px 20px !important;
+  }
+  .home-about-card {
+    padding: 28px 20px !important;
+  }
+  .home-free-card {
+    padding: 24px 20px !important;
+  }
+  .home-free-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .home-about-header {
+    gap: 16px !important;
   }
   /* Testimonials */
   #testimonials {
@@ -404,6 +465,32 @@
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
+  /* About & Free sections */
+  #about,
+  .home-about-section,
+  #free,
+  .home-free-section {
+    padding: 48px 16px !important;
+  }
+  .home-about-card {
+    padding: 20px 16px !important;
+  }
+  .home-free-card {
+    padding: 20px 16px !important;
+  }
+  .home-about-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+  .home-about-gh-btn {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .home-free-title {
+    font-size: clamp(40px, 10vw, 56px) !important;
+  }
   /* CTA buttons — full width */
   #cta .home-cta-btn,
   #free .home-cta-btn {
@@ -441,15 +528,36 @@
   }
   /* Section titles */
   #features h2,
-  #about h2 {
-    font-size: clamp(36px, 8vw, 52px) !important;
+  #about h2,
+  .home-about-section h2 {
+    font-size: clamp(34px, 8vw, 48px) !important;
   }
   #testimonials h2 {
     font-size: clamp(36px, 8vw, 52px) !important;
   }
   #cta h2,
-  #free h2 {
-    font-size: clamp(40px, 10vw, 64px) !important;
+  #free h2,
+  .home-free-title {
+    font-size: clamp(36px, 9vw, 52px) !important;
+  }
+  /* About & Free sections */
+  #about,
+  .home-about-section,
+  #free,
+  .home-free-section {
+    padding: 36px 12px !important;
+  }
+  .home-about-card,
+  .home-free-card {
+    padding: 16px 12px !important;
+    border-radius: 12px !important;
+  }
+  .home-free-item {
+    font-size: 12px !important;
+    gap: 8px !important;
+  }
+  .home-about-repo-link {
+    font-size: 12px !important;
   }
   /* Testimonial card padding */
   #testimonials .masonry > div {
