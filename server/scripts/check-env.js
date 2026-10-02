@@ -65,15 +65,6 @@ if (!fs.existsSync(envPath)) {
         errors.push('NODE_ENV is "production" but GOOGLE_CALLBACK_URL is missing or set to localhost. Google OAuth will use the wrong redirect_uri and fail. Set GOOGLE_CALLBACK_URL=https://<your-render-domain>/google/callback on Render.');
     }
 
-    // 4b. GOOGLE_CALLBACK_URL check
-    const callbackUrl = envConfig.GOOGLE_CALLBACK_URL || '';
-    if (callbackUrl.startsWith('https://localhost') || callbackUrl.startsWith('https://127.0.0.1')) {
-        errors.push('GOOGLE_CALLBACK_URL is set to "https://localhost...". Change it to "http://localhost:3001/google/callback" for local dev, or your production backend URL for deployed environments.');
-    }
-
-    if (nodeEnv === 'production' && (!callbackUrl || callbackUrl.startsWith('http://localhost') || callbackUrl.startsWith('http://127.0.0.1'))) {
-        errors.push('NODE_ENV is "production" but GOOGLE_CALLBACK_URL is missing or set to localhost. Google OAuth will use the wrong redirect_uri and fail. Set GOOGLE_CALLBACK_URL=https://<your-render-domain>/google/callback on Render.');
-    }
 
     // 5. Google OAuth check
     const hasGoogleId = Boolean(envConfig.GOOGLE_CLIENT_ID);
