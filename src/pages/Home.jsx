@@ -572,9 +572,9 @@ export default function Home() {
           </p>
 
           <div className="hero-actions" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <button onClick={login} className="home-cta-btn" style={heroPrimaryBtn}>
+            <button onClick={isAuthenticated ? () => navigate('/create') : login} className="home-cta-btn" style={heroPrimaryBtn}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-              Generate Free Deck
+              {isAuthenticated ? 'Generate Deck →' : 'Generate Free Deck'}
             </button>
             <a href="#features" className="home-cta-btn" style={{ ...heroSecondaryBtn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
               Explore Features ↓

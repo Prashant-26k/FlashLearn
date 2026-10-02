@@ -13,7 +13,7 @@ import { useState, useRef } from 'react';
 export default function StudyActivitySection({ quizStats, statsLoading, onStartReview }) {
     const [hoveredDay, setHoveredDay] = useState(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-    const containerRef = useRef(null);
+    const heatmapContainerRef = useRef(null);
 
     const currentStreak = quizStats?.currentStreak ?? 0;
     const maxStreak = quizStats?.maxStreak ?? 0;
@@ -92,13 +92,19 @@ export default function StudyActivitySection({ quizStats, statsLoading, onStartR
 
     const handleMouseEnter = (day, e) => {
         if (day.isFuture) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const containerRect = containerRef.current?.getBoundingClientRect() || { left: 0, top: 0, width: 600 };
-        const rawX = rect.left - containerRect.left + rect.width / 2;
-        const clampedX = Math.max(70, Math.min(rawX, (containerRect.width || 600) - 100));
+        const cellRect = e.currentTarget.getBoundingClientRect();
+        const containerRect = heatmapContainerRef.current?.getBoundingClientRect();
+        if (!containerRect) return;
+
+        const rawX = cellRect.left - containerRect.left + cellRect.width / 2;
+        const clampedX = Math.max(120, Math.min(rawX, containerRect.width - 120));
+
+        // Position directly below the hovered cell with a 6px offset
+        const cellBottomOffset = cellRect.bottom - containerRect.top;
+
         setTooltipPos({
             x: clampedX,
-            y: rect.top - containerRect.top,
+            y: cellBottomOffset + 6,
         });
         setHoveredDay(day);
     };
@@ -109,7 +115,6 @@ export default function StudyActivitySection({ quizStats, statsLoading, onStartR
 
     return (
         <section
-            ref={containerRef}
             style={{
                 position: 'relative',
                 background: '#141417',
@@ -298,13 +303,16 @@ export default function StudyActivitySection({ quizStats, statsLoading, onStartR
             </div>
 
             {/* ── 3. Heatmap Container ── */}
-            <div style={{
-                background: '#111114',
-                border: '1px solid #222228',
-                borderRadius: 12,
-                padding: '16px 16px 12px',
-                position: 'relative',
-            }}>
+            <div
+                ref={heatmapContainerRef}
+                style={{
+                    background: '#111114',
+                    border: '1px solid #222228',
+                    borderRadius: 12,
+                    padding: '16px 16px 12px',
+                    position: 'relative',
+                }}
+            >
                 <div style={{ overflowX: 'auto', paddingBottom: 6, scrollbarWidth: 'thin' }}>
                     <div style={{ minWidth: 780 }}>
                         {/* Month Headers */}
@@ -347,7 +355,7 @@ export default function StudyActivitySection({ quizStats, statsLoading, onStartR
                                 {weeks.map((week, wIdx) => (
                                     <div key={wIdx} style={{ display: 'flex', flexDirection: 'column', gap: '3.5px' }}>
                                         {week.map(day => (
-                                            <button
+                                             <button
                                                 key={day.key}
                                                 type="button"
                                                 onClick={() => day.quizzes > 0 && onStartReview?.()}
@@ -386,17 +394,17 @@ export default function StudyActivitySection({ quizStats, statsLoading, onStartR
                         style={{
                             position: 'absolute',
                             left: tooltipPos.x,
-                            top: tooltipPos.y - 70,
+                            top: tooltipPos.y,
                             transform: 'translateX(-50%)',
-                            background: '#1e1e24',
-                            border: '1px solid #383842',
+                            background: '#1b1b22',
+                            border: '1px solid #363642',
                             borderRadius: 8,
-                            padding: '8px 12px',
-                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+                            padding: '7px 12px',
+                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.1)',
                             pointerEvents: 'none',
-                            zIndex: 40,
+                            zIndex: 50,
                             whiteSpace: 'nowrap',
-                            animation: 'fadeUp 150ms ease forwards',
+                            animation: 'fadeUp 120ms ease forwards',
                         }}
                     >
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#ffffff' }}>

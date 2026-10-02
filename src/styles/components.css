@@ -308,6 +308,61 @@
   margin: 4px 0;
 }
 
+/* ── Deck Compact Dropdown Menu ── */
+.deck-dropdown-menu {
+  min-width: 128px;
+  width: max-content;
+  max-width: 160px;
+  padding: 4px;
+  background: #18181e;
+  border: 1px solid #33333d;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.deck-dropdown-menu .dropdown-item {
+  padding: 5px 8px;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 5px;
+  color: var(--text-primary);
+}
+
+.deck-dropdown-menu .dropdown-item .material-symbols-outlined {
+  font-size: 15px;
+  width: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.deck-dropdown-menu .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.deck-dropdown-menu .dropdown-item:hover .material-symbols-outlined {
+  color: var(--text-primary);
+}
+
+.deck-dropdown-menu .dropdown-item.danger {
+  color: #f87171;
+}
+
+.deck-dropdown-menu .dropdown-item.danger .material-symbols-outlined {
+  color: #f87171;
+}
+
+.deck-dropdown-menu .dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+.deck-dropdown-menu .dropdown-divider {
+  margin: 3px 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* ── Filter Pill Tabs ── */
 .pill-tabs {
   display: flex;

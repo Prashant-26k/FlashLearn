@@ -165,10 +165,12 @@ export default function MyDecks() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
                     {filteredDecks.map((deck, idx) => {
                         const style = getDeckStyle(deck, idx);
+                        const isOpen = menuOpen === deck._id;
                         return (
                             <div
                                 key={deck._id}
                                 className="stitch-deck-grid-card"
+                                style={{ zIndex: isOpen ? 40 : 1 }}
                                 onClick={() => navigate(`/decks/${deck._id}`)}
                                 role="button"
                                 tabIndex={0}
@@ -198,15 +200,15 @@ export default function MyDecks() {
                                                 className="btn btn-ghost btn-sm"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setMenuOpen(menuOpen === deck._id ? null : deck._id);
+                                                    setMenuOpen(isOpen ? null : deck._id);
                                                 }}
                                                 style={{ padding: '0 4px', color: 'var(--text-muted)' }}
                                                 aria-label="Deck options"
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>more_vert</span>
                                             </button>
-                                            {menuOpen === deck._id && (
-                                                <div className="dropdown">
+                                            {isOpen && (
+                                                <div className="dropdown deck-dropdown-menu">
                                                     <button className="dropdown-item" onClick={() => { navigate(`/decks/${deck._id}`); setMenuOpen(null); }}>
                                                         <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit</span> Edit
                                                     </button>
