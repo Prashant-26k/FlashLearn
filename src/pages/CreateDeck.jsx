@@ -176,7 +176,7 @@ export default function CreateDeck() {
             setCurrentCard(0);
             toast.success(`Generated ${generatedCards.length} flashcards!`);
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to generate cards');
+            toast.error(getApiErrorMessage(err, 'Failed to generate cards'));
         }
         setGenerating(false);
     };
@@ -206,7 +206,7 @@ export default function CreateDeck() {
                 ? `Generated ${generatedCards.length} cards. Some sections could not be processed.`
                 : `Generated ${generatedCards.length} flashcards!`);
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to generate cards');
+            toast.error(getApiErrorMessage(err, 'Failed to generate cards'));
         }
         setGenerating(false);
     };

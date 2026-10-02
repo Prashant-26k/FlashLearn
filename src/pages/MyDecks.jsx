@@ -5,44 +5,7 @@ import Modal from '../components/Modal';
 import { useToast } from '../context/useToast';
 import api from '../utils/api';
 import { getCached, setCached, invalidateCache } from '../utils/cache';
-
-const DECK_ICONS = {
-    bio: { icon: 'biotech', bg: 'rgba(75,43,238,0.12)', color: '#7c6af5' },
-    science: { icon: 'science', bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
-    chemistry: { icon: 'science', bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
-    math: { icon: 'calculate', bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
-    history: { icon: 'history_edu', bg: 'rgba(168,85,247,0.12)', color: '#a855f7' },
-    geo: { icon: 'public', bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
-    geography: { icon: 'public', bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
-    lang: { icon: 'translate', bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-    spanish: { icon: 'translate', bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-    french: { icon: 'translate', bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-    code: { icon: 'code', bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-    python: { icon: 'code', bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-    java: { icon: 'code', bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-    programming: { icon: 'code', bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-    machine: { icon: 'smart_toy', bg: 'rgba(6,182,212,0.12)', color: '#06b6d4' },
-    ai: { icon: 'smart_toy', bg: 'rgba(6,182,212,0.12)', color: '#06b6d4' },
-    medical: { icon: 'medical_services', bg: 'rgba(239,68,68,0.12)', color: '#ef4444' },
-};
-
-const FALLBACK_COLORS = [
-    { bg: 'rgba(75,43,238,0.12)', color: '#7c6af5' },
-    { bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
-    { bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
-    { bg: 'rgba(168,85,247,0.12)', color: '#a855f7' },
-    { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-    { bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-];
-
-function getDeckStyle(deck, idx) {
-    const text = ((deck.title || '') + (deck.topic || '')).toLowerCase();
-    for (const [key, style] of Object.entries(DECK_ICONS)) {
-        if (text.includes(key)) return style;
-    }
-    const fb = FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
-    return { icon: 'layers', ...fb };
-}
+import { getDeckStyle } from '../utils/deckStyle';
 
 const FILTERS = [
     { key: 'all', label: 'All' },

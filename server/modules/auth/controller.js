@@ -12,7 +12,6 @@ export function getClientUrl() {
 
     if (!url) {
         if (process.env.NODE_ENV === 'production') {
-            // This is a hard misconfiguration on Render — CLIENT_URL must be set
             console.error('[FATAL] CLIENT_URL is not set in production. Set CLIENT_URL=https://studywithflashlearn.netlify.app on Render.');
         }
         url = 'http://localhost:5173'; // safe local dev fallback only
@@ -24,7 +23,6 @@ export function getClientUrl() {
 
     return url;
 }
-
 
 const oauthStateCookie = 'flashlearn_oauth_state';
 

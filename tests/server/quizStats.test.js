@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateQuizStats, getDayKey } from '../../server/services/quizStats.js';
+import { calculateQuizStats, getDayKey } from '../../server/modules/quiz/stats.js';
 
 describe('Quiz Statistics & Streak Calculation', () => {
     it('calculates totals accurately', () => {

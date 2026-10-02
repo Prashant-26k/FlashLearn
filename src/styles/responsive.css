@@ -405,7 +405,8 @@
     padding-right: 16px !important;
   }
   /* CTA buttons — full width */
-  #cta .home-cta-btn {
+  #cta .home-cta-btn,
+  #free .home-cta-btn {
     width: 100% !important;
     max-width: 320px !important;
     justify-content: center !important;
@@ -439,13 +440,15 @@
     font-size: 12px !important;
   }
   /* Section titles */
-  #features h2 {
+  #features h2,
+  #about h2 {
     font-size: clamp(36px, 8vw, 52px) !important;
   }
   #testimonials h2 {
     font-size: clamp(36px, 8vw, 52px) !important;
   }
-  #cta h2 {
+  #cta h2,
+  #free h2 {
     font-size: clamp(40px, 10vw, 64px) !important;
   }
   /* Testimonial card padding */

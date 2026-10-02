@@ -25,9 +25,13 @@
   --bg-elevated:  #1e1e1e;
   --border-subtle: #2a2a2a;
   --border-active: #454545;
-  --text-primary:  #ffffff;
-  --text-secondary: #d4d4d8;
-  --text-muted:    #a1a1aa;
+  --text-primary:  #f0f0f4;
+  --text-secondary: #8a8a96;
+  --text-muted:    #4a4a56;
+  --text-subtle:   #4a4a56;
+  --text-link:     #7c6ef7;
+  --text-link-hover: #a598ff;
+  --text-inverse:  #ffffff;
   --accent:        #4b2bee;
   --accent-hover:  #6448f2;
   --accent-glow:   rgba(75, 43, 238, 0.18);
@@ -351,13 +355,21 @@
 }
 
 .stitch-login-brand {
-  font-size: 25px;
-  letter-spacing: -.04em;
+  font-family: var(--font-heading);
+  font-size: 28px;
+  letter-spacing: 0.05em;
   margin-bottom: 38px;
 }
 
-.stitch-login-brand b { color: #8b7cff; }
-.stitch-login-brand span { color: #f5f5f7; }
+.stitch-login-brand b {
+  color: var(--text-link);
+  font-weight: 400;
+}
+
+.stitch-login-brand span {
+  color: var(--text-primary);
+  font-weight: 400;
+}
 
 .stitch-login-card h1 {
   font-size: 28px;
@@ -366,7 +378,7 @@
 }
 
 .stitch-login-subtitle {
-  color: #8f8f9b;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 30px;
 }
@@ -380,7 +392,7 @@
   gap: 11px;
   border: 1px solid #3a3a43;
   border-radius: 10px;
-  color: #f5f5f7;
+  color: var(--text-primary);
   background: #1b1b21;
   font: 500 14px var(--font-sans);
   cursor: pointer;
@@ -397,14 +409,14 @@
 }
 
 .stitch-login-legal {
-  color: #777783;
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.5;
   margin-top: 24px;
 }
 
 .stitch-login-legal a {
-  color: #aaa1f0;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -811,7 +823,7 @@
 .stitch-category-chip {
   font-size: 10px;
   font-family: var(--font-mono);
-  color: #71717a;
+  color: var(--text-muted);
 }
 
 .stitch-flashcard-question {
@@ -829,14 +841,14 @@
 .stitch-flashcard-question p {
   font-size: clamp(18px, 2.5vw, 24px);
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1.5;
   letter-spacing: -0.02em;
 }
 
 .stitch-flip-hint {
   font-size: 11px;
-  color: #4b5563;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -936,7 +948,7 @@
   height: 20px;
   border-radius: 50%;
   background: #202025;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 10px;
   font-weight: 600;
   display: flex;
@@ -949,12 +961,12 @@
 
 .stitch-card-item.active .stitch-card-num {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .stitch-card-item-text {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.4;
   overflow: hidden;
   display: -webkit-box;
@@ -963,7 +975,7 @@
 }
 
 .stitch-card-item.active .stitch-card-item-text {
-  color: #fff;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
