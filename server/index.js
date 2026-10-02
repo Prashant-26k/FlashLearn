@@ -38,9 +38,12 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
-let rawClientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+let rawClientUrl = (process.env.CLIENT_URL || '').trim().replace(/\/$/, '');
 if (rawClientUrl.startsWith('https://localhost') || rawClientUrl.startsWith('https://127.0.0.1')) {
     rawClientUrl = rawClientUrl.replace(/^https:\/\//i, 'http://');
+}
+if (!rawClientUrl) {
+    rawClientUrl = 'http://localhost:5173';
 }
 const CLIENT_URL = rawClientUrl;
 
@@ -79,35 +82,44 @@ app.use(passport.initialize());
 
 // ── Passport Google Strategy ──
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    passport.use(new GoogleStrategy(
-        {
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/google/callback',
-            proxy: true,
-        },
-        async (accessToken, refreshToken, profile, done) => {
-            try {
-                let user = await User.findOne({ googleId: profile.id });
-                if (!user) {
-                    user = await User.create({
-                        googleId: profile.id,
-                        displayName: profile.displayName,
-                        email: profile.emails?.[0]?.value || '',
-                        avatar: profile.photos?.[0]?.value || '',
-                    });
-                } else {
-                    user.displayName = profile.displayName;
-                    user.avatar = profile.photos?.[0]?.value || user.avatar;
-                    await user.save();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const callbackURL = process.env.GOOGLE_CALLBACK_URL || (
+        isProduction
+            ? (() => { logger.error('GOOGLE_CALLBACK_URL is not set in production — Google OAuth will fail. Set it to https://<your-backend>/google/callback on Render.'); return null; })()
+            : 'http://localhost:3001/google/callback'
+    );
+
+    if (callbackURL) {
+        passport.use(new GoogleStrategy(
+            {
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                callbackURL,
+                proxy: true,
+            },
+            async (accessToken, refreshToken, profile, done) => {
+                try {
+                    let user = await User.findOne({ googleId: profile.id });
+                    if (!user) {
+                        user = await User.create({
+                            googleId: profile.id,
+                            displayName: profile.displayName,
+                            email: profile.emails?.[0]?.value || '',
+                            avatar: profile.photos?.[0]?.value || '',
+                        });
+                    } else {
+                        user.displayName = profile.displayName;
+                        user.avatar = profile.photos?.[0]?.value || user.avatar;
+                        await user.save();
+                    }
+                    done(null, user);
+                } catch (err) {
+                    logger.error('Passport Google Strategy Error during authentication:', err);
+                    done(err, null);
                 }
-                done(null, user);
-            } catch (err) {
-                logger.error('Passport Google Strategy Error during authentication:', err);
-                done(err, null);
             }
-        }
-    ));
+        ));
+    }
 } else {
     logger.warn('⚠ Google OAuth is not configured — sign-in will be unavailable');
 }
