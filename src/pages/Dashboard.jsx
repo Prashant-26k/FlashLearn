@@ -7,40 +7,7 @@ import CircularProgress from '../components/ui/CircularProgress';
 import api from '../utils/api';
 import { getCached, setCached } from '../utils/cache';
 import { getDeckReadPercentage } from '../utils/deckProgress';
-
-// Deck icon mapping by topic keyword
-const DECK_ICONS = {
-    bio: 'science', science: 'science', chemistry: 'science',
-    math: 'calculate', calculus: 'calculate', algebra: 'calculate',
-    history: 'history_edu', geo: 'public', geography: 'public',
-    lang: 'language', spanish: 'language', french: 'language',
-    code: 'code', python: 'code', java: 'code', programming: 'code',
-    machine: 'smart_toy', ai: 'smart_toy', ml: 'smart_toy',
-    medical: 'medical_services', anatomy: 'medical_services',
-    music: 'music_note', art: 'palette',
-    default: 'layers',
-};
-
-function getDeckIcon(deck) {
-    const text = ((deck.title || '') + (deck.topic || '')).toLowerCase();
-    for (const [key, icon] of Object.entries(DECK_ICONS)) {
-        if (key !== 'default' && text.includes(key)) return icon;
-    }
-    return DECK_ICONS.default;
-}
-
-const DECK_ICON_COLORS = [
-    { bg: 'rgba(75,43,238,0.12)', color: '#7c6af5' },
-    { bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
-    { bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
-    { bg: 'rgba(168,85,247,0.12)', color: '#a855f7' },
-    { bg: 'rgba(239,68,68,0.12)', color: '#ef4444' },
-    { bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
-];
-
-function getDeckColor(idx) {
-    return DECK_ICON_COLORS[idx % DECK_ICON_COLORS.length];
-}
+import { getDeckColor, getDeckIcon } from '../utils/deckStyle';
 
 function getGreeting() {
     const hour = new Date().getHours();
