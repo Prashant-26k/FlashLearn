@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import api from '../utils/api';
+import { getCached } from '../utils/cache';
 import { getDeckReadPercentage } from '../utils/deckProgress';
 import { getDeckStyle } from '../utils/deckStyle';
 
@@ -20,13 +21,41 @@ export default function Profile() {
     const { user, login } = useAuth();
     const navigate = useNavigate();
 
-    const [todayHistory, setTodayHistory] = useState([]);
-    const [favoriteDecks, setFavoriteDecks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [todayHistory, setTodayHistory] = useState(() => {
+        const cached = getCached('/api/decks');
+        if (!Array.isArray(cached)) return [];
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        return cached
+            .filter((d) => new Date(d.createdAt) >= startOfToday)
+            .map((d) => ({
+                id: d._id,
+                type: 'deck_created',
+                title: d.title,
+                topic: d.topic || 'General',
+                cards: d.cards || [],
+                cardCount: Array.isArray(d.cards) ? d.cards.length : (d.cardCount || 0),
+                mastery: getDeckReadPercentage(d),
+                timeAgo: 'Created today',
+            }));
+    });
+    const [favoriteDecks, setFavoriteDecks] = useState(() => {
+        const cached = getCached('/api/decks/menu');
+        if (!cached?.favorites) return [];
+        return cached.favorites.map((d) => ({
+            _id: d._id,
+            title: d.title,
+            topic: d.topic || 'General',
+            cards: d.cards || [],
+            cardCount: Array.isArray(d.cards) ? d.cards.length : (d.cardCount || 0),
+            mastery: getDeckReadPercentage(d),
+        }));
+    });
+    const [loading, setLoading] = useState(() => !getCached('/api/decks') && !getCached('/api/decks/menu'));
 
     useEffect(() => {
         let mounted = true;
-        Promise.allSettled([api.get('/api/decks'), api.get('/api/decks/menu')])
+        Promise.allSettled([api.getCached('/api/decks'), api.getCached('/api/decks/menu')])
             .then(([decksRes, menuRes]) => {
                 if (!mounted) return;
 

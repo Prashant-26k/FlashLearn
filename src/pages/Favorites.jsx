@@ -1,20 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { getCached } from '../utils/cache';
 import { useToast } from '../context/useToast';
 import { getDeckReadPercentage } from '../utils/deckProgress';
 import { getDeckStyle } from '../utils/deckStyle';
 
 export default function Favorites() {
-    const [favorites, setFavorites] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [favorites, setFavorites] = useState(() => {
+        const cached = getCached('/api/decks/menu');
+        if (!cached?.favorites) return [];
+        return cached.favorites.map((deck) => ({
+            _id: deck._id,
+            title: deck.title,
+            topic: deck.topic || 'General',
+            cards: deck.cards || [],
+            cardCount: Array.isArray(deck.cards) ? deck.cards.length : (deck.cardCount || 0),
+            mastery: getDeckReadPercentage(deck),
+            icon: 'layers',
+        }));
+    });
+    const [loading, setLoading] = useState(() => !getCached('/api/decks/menu'));
     const [search, setSearch] = useState('');
     const navigate = useNavigate();
     const toast = useToast();
 
     useEffect(() => {
         let mounted = true;
-        api.get('/api/decks/menu')
+        api.getCached('/api/decks/menu')
             .then(({ data }) => {
                 if (!mounted) return;
                 setFavorites((data?.favorites || []).map((deck) => ({

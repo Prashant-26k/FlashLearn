@@ -43,7 +43,7 @@ export default function Settings() {
 
     useEffect(() => {
         let mounted = true;
-        api.get('/api/preferences').then(({ data }) => {
+        api.getCached('/api/preferences').then(({ data }) => {
             if (!mounted || !data?.learningStyle) return;
             setPrefs(prev => {
                 const updated = { ...prev, learningStyle: data.learningStyle };

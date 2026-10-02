@@ -4,7 +4,7 @@ import { SkeletonGrid } from '../components/Skeleton';
 import Modal from '../components/Modal';
 import { useToast } from '../context/useToast';
 import api from '../utils/api';
-import { getCached, setCached, invalidateCache } from '../utils/cache';
+import { getCached } from '../utils/cache';
 import { getDeckStyle } from '../utils/deckStyle';
 
 const FILTERS = [
@@ -14,8 +14,8 @@ const FILTERS = [
 ];
 
 export default function MyDecks() {
-    const [decks, setDecks] = useState(() => getCached('decks') || []);
-    const [loading, setLoading] = useState(() => !getCached('decks'));
+    const [decks, setDecks] = useState(() => getCached('/api/decks') || []);
+    const [loading, setLoading] = useState(() => !getCached('/api/decks'));
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [menuOpen, setMenuOpen] = useState(null);
@@ -23,23 +23,21 @@ export default function MyDecks() {
     const navigate = useNavigate();
     const toast = useToast();
 
-    const reloadDecks = async () => {
+    const reloadDecks = async (force = true) => {
         try {
-            const res = await api.get('/api/decks');
+            const res = await api.getCached('/api/decks', {}, { forceFresh: force });
             const data = Array.isArray(res.data) ? res.data : (res.data?.items || []);
             setDecks(data);
-            setCached('decks', data, 60000);
         } catch { /* backend not running */ }
     };
 
     useEffect(() => {
         let mounted = true;
-        api.get('/api/decks')
+        api.getCached('/api/decks')
             .then(res => {
                 if (!mounted) return;
                 const data = Array.isArray(res.data) ? res.data : (res.data?.items || []);
                 setDecks(data);
-                setCached('decks', data, 60000);
             })
             .catch(() => {})
             .finally(() => {
@@ -58,8 +56,6 @@ export default function MyDecks() {
     const handleDelete = async () => {
         try {
             await api.delete(`/api/decks/${deleteId}`);
-            invalidateCache('decks');
-            invalidateCache('dashboard_decks');
             setDecks(decks.filter(d => d._id !== deleteId));
             toast.success('Deck deleted');
         } catch {
@@ -75,10 +71,8 @@ export default function MyDecks() {
                 topic: deck.topic,
                 cards: deck.cards,
             });
-            invalidateCache('decks');
-            invalidateCache('dashboard_decks');
             toast.success('Deck duplicated');
-            reloadDecks();
+            reloadDecks(true);
         } catch {
             toast.error('Failed to duplicate');
         }

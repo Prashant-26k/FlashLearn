@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api, { getBackendBaseUrl } from '../utils/api';
+import { clearCache } from '../utils/cache';
 import AuthContext from './authContextValue';
 
 function readStoredUser() {
@@ -79,6 +80,7 @@ export function AuthProvider({ children }) {
         } catch {
             // ignore
         }
+        clearCache();
         localStorage.removeItem('flashlearn_token');
         setUser(null);
         window.location.replace('/');

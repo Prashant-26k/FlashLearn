@@ -5,7 +5,7 @@ import QuizScoreGauge from '../components/ui/QuizScoreGauge';
 import StudyActivitySection from '../components/ui/StudyActivitySection';
 import CircularProgress from '../components/ui/CircularProgress';
 import api from '../utils/api';
-import { getCached, setCached } from '../utils/cache';
+import { getCached } from '../utils/cache';
 import { getDeckReadPercentage } from '../utils/deckProgress';
 import { getDeckColor, getDeckIcon } from '../utils/deckStyle';
 
@@ -19,28 +19,28 @@ function getGreeting() {
 export default function Dashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [decks, setDecks] = useState(() => getCached('dashboard_decks') || []);
-    const [loading, setLoading] = useState(() => !getCached('dashboard_decks'));
-    const [quizStats, setQuizStats] = useState(() => getCached('quiz_stats') || null);
-    const [statsLoading, setStatsLoading] = useState(() => !getCached('quiz_stats'));
+    const tzOffset = new Date().getTimezoneOffset();
+    const statsUrl = `/api/quiz/stats?tzOffset=${tzOffset}`;
+    const [decks, setDecks] = useState(() => getCached('/api/decks') || []);
+    const [loading, setLoading] = useState(() => !getCached('/api/decks'));
+    const [quizStats, setQuizStats] = useState(() => getCached(statsUrl) || null);
+    const [statsLoading, setStatsLoading] = useState(() => !getCached(statsUrl));
 
     useEffect(() => {
         let mounted = true;
         Promise.allSettled([
-            api.get('/api/decks'),
-            api.get(`/api/quiz/stats?tzOffset=${new Date().getTimezoneOffset()}`),
+            api.getCached('/api/decks'),
+            api.getCached(statsUrl),
         ]).then(([decksRes, statsRes]) => {
             if (!mounted) return;
             if (decksRes.status === 'fulfilled') {
                 const data = Array.isArray(decksRes.value.data) ? decksRes.value.data : (decksRes.value.data?.items || []);
                 setDecks(data);
-                setCached('dashboard_decks', data, 30000);
             }
             setLoading(false);
 
             if (statsRes.status === 'fulfilled') {
                 setQuizStats(statsRes.value.data);
-                setCached('quiz_stats', statsRes.value.data, 30000);
             } else {
                 setQuizStats(prev => prev || { quizzesTaken: 0, totalCorrect: 0, totalQuestions: 0, activityDates: [], currentStreak: 0, maxStreak: 0, totalActiveDays: 0 });
             }
@@ -48,7 +48,7 @@ export default function Dashboard() {
         });
 
         return () => { mounted = false; };
-    }, []);
+    }, [statsUrl]);
 
     // KPI calculations
     const totalFlashcards = decks.reduce((sum, d) => sum + (d.cards?.length || 0), 0);

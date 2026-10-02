@@ -1,36 +1,135 @@
 const store = new Map();
-const MAX_CACHE_SIZE = 100;
+const pendingRequests = new Map();
+const MAX_CACHE_SIZE = 150;
+export const DEFAULT_FRESH_MS = 30_000; // 30 seconds fresh window (0ms response, no network request)
+export const DEFAULT_TTL_MS = 300_000; // 5 minutes max cache lifetime
 
-export function getCached(key) {
-    const entry = store.get(key);
+export function normalizeKey(key) {
+    if (!key) return '';
+    if (typeof key !== 'string') return String(key);
+    if (key === 'decks' || key === 'dashboard_decks') return '/api/decks';
+    if (key === 'collections') return '/api/collections';
+    if (key === 'quiz_stats') return '/api/quiz/stats';
+    if (key.startsWith('deck_')) {
+        const id = key.replace(/^deck_/, '');
+        return `/api/decks/${id}`;
+    }
+    return key;
+}
+
+export function buildCacheKey(url, params) {
+    if (!params || Object.keys(params).length === 0) {
+        return normalizeKey(url);
+    }
+    const sortedParams = new URLSearchParams();
+    Object.keys(params).sort().forEach(k => {
+        if (params[k] !== undefined && params[k] !== null) {
+            sortedParams.set(k, String(params[k]));
+        }
+    });
+    const queryStr = sortedParams.toString();
+    const cleanUrl = normalizeKey(url);
+    return queryStr ? `${cleanUrl}${cleanUrl.includes('?') ? '&' : '?'}${queryStr}` : cleanUrl;
+}
+
+export function getCacheEntry(key) {
+    const norm = normalizeKey(key);
+    const entry = store.get(norm) || store.get(key);
     if (!entry) return null;
-    if (Date.now() > entry.expiresAt) {
+
+    const now = Date.now();
+    if (now > entry.expiresAt) {
+        store.delete(norm);
         store.delete(key);
         return null;
     }
-    // Refresh access order (LRU)
-    store.delete(key);
-    store.set(key, entry);
-    return entry.data;
+
+    // Refresh LRU order
+    store.delete(norm);
+    store.set(norm, entry);
+
+    return {
+        data: entry.data,
+        freshUntil: entry.freshUntil,
+        expiresAt: entry.expiresAt,
+        updatedAt: entry.updatedAt,
+        isFresh: now <= entry.freshUntil,
+    };
 }
 
-export function setCached(key, data, ttlMs = 60_000) {
+export function getCached(key) {
+    const entry = getCacheEntry(key);
+    return entry ? entry.data : null;
+}
+
+export function isCacheFresh(key) {
+    const entry = getCacheEntry(key);
+    return Boolean(entry && entry.isFresh);
+}
+
+export function setCached(key, data, ttlMs = DEFAULT_TTL_MS, freshMs = DEFAULT_FRESH_MS) {
+    const norm = normalizeKey(key);
     if (store.size >= MAX_CACHE_SIZE) {
-        // Evict least-recently used (first item in Map iterator)
         const oldestKey = store.keys().next().value;
         store.delete(oldestKey);
     }
-    store.set(key, { data, expiresAt: Date.now() + ttlMs, updatedAt: Date.now() });
+    const now = Date.now();
+    const entry = {
+        data,
+        freshUntil: now + freshMs,
+        expiresAt: now + ttlMs,
+        updatedAt: now,
+    };
+    store.set(norm, entry);
+    if (norm !== key) {
+        store.set(key, entry);
+    }
 }
 
 export function invalidateCache(key) {
+    const norm = normalizeKey(key);
+    store.delete(norm);
     store.delete(key);
+    pendingRequests.delete(norm);
+    pendingRequests.delete(key);
 }
 
 export function invalidatePattern(prefix) {
-    for (const key of store.keys()) {
-        if (key.startsWith(prefix)) store.delete(key);
+    const normPrefix = normalizeKey(prefix);
+    for (const k of Array.from(store.keys())) {
+        if (k.startsWith(prefix) || k.startsWith(normPrefix)) {
+            store.delete(k);
+        }
     }
+    for (const k of Array.from(pendingRequests.keys())) {
+        if (k.startsWith(prefix) || k.startsWith(normPrefix)) {
+            pendingRequests.delete(k);
+        }
+    }
+}
+
+export function clearCache() {
+    store.clear();
+    pendingRequests.clear();
+}
+
+/**
+ * Deduplicates in-flight asynchronous operations so concurrent calls for the same key share 1 execution.
+ */
+export async function dedupedRequest(key, fetcher) {
+    const norm = normalizeKey(key);
+    if (pendingRequests.has(norm)) {
+        return pendingRequests.get(norm);
+    }
+    const promise = (async () => {
+        try {
+            return await fetcher();
+        } finally {
+            pendingRequests.delete(norm);
+        }
+    })();
+    pendingRequests.set(norm, promise);
+    return promise;
 }
 
 /**
@@ -38,27 +137,28 @@ export function invalidatePattern(prefix) {
  * Returns cached data immediately if present (even if slightly stale),
  * while executing fetcher in the background to update the cache.
  */
-export async function staleWhileRevalidate(key, fetcher, ttlMs = 60_000) {
-    const entry = store.get(key);
-    const hasData = entry && entry.data;
+export async function staleWhileRevalidate(key, fetcher, ttlMs = DEFAULT_TTL_MS, freshMs = DEFAULT_FRESH_MS) {
+    const norm = normalizeKey(key);
+    const entry = getCacheEntry(norm);
 
-    const refreshPromise = fetcher()
-        .then((freshData) => {
-            setCached(key, freshData, ttlMs);
-            return freshData;
-        })
-        .catch((err) => {
-            if (!hasData) throw err;
+    if (entry) {
+        // If data is fresh, return immediately with zero background fetch
+        if (entry.isFresh) {
             return entry.data;
-        });
+        }
 
-    if (hasData) {
+        // Stale data: revalidate in background without blocking
+        dedupedRequest(norm, fetcher)
+            .then((freshData) => {
+                setCached(norm, freshData, ttlMs, freshMs);
+            })
+            .catch(() => {});
+
         return entry.data;
     }
 
-    return refreshPromise;
-}
-
-export function clearCache() {
-    store.clear();
+    // No cache: fetch with deduplication
+    const freshData = await dedupedRequest(norm, fetcher);
+    setCached(norm, freshData, ttlMs, freshMs);
+    return freshData;
 }

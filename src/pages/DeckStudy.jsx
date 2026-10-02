@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { SkeletonLine } from '../components/Skeleton';
 import { useToast } from '../context/useToast';
 import api, { getApiErrorMessage } from '../utils/api';
-import { getCached, setCached, invalidateCache } from '../utils/cache';
+import { getCached, invalidateCache } from '../utils/cache';
 import { markCardRead } from '../utils/deckProgress';
 import { getStudyQueue, reviewCard } from '../utils/spacedRepetition';
 import { getFlipDuration } from '../utils/flipDuration';
@@ -12,12 +12,12 @@ export default function DeckStudy() {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useToast();
-    const [deck, setDeck] = useState(() => getCached(`deck_${id}`) || null);
-    const [loading, setLoading] = useState(() => !getCached(`deck_${id}`));
+    const [deck, setDeck] = useState(() => getCached(`/api/decks/${id}`) || null);
+    const [loading, setLoading] = useState(() => !getCached(`/api/decks/${id}`));
     const [currentCard, setCurrentCard] = useState(0);
     const [flipped, setFlipped] = useState(false);
     const [editingTitle, setEditingTitle] = useState(false);
-    const [title, setTitle] = useState(() => getCached(`deck_${id}`)?.title || '');
+    const [title, setTitle] = useState(() => getCached(`/api/decks/${id}`)?.title || '');
     const [learningStyle, setLearningStyle] = useState(() => {
         try {
             return JSON.parse(localStorage.getItem('flashlearn_prefs') || '{}').learningStyle || 'sequential';
@@ -29,7 +29,7 @@ export default function DeckStudy() {
     const [orderPosition, setOrderPosition] = useState(0);
 
     useEffect(() => {
-        api.get('/api/preferences')
+        api.getCached('/api/preferences')
             .then(({ data }) => data?.learningStyle && setLearningStyle(data.learningStyle))
             .catch(() => {});
     }, []);
@@ -43,12 +43,11 @@ export default function DeckStudy() {
 
     useEffect(() => {
         let mounted = true;
-        api.get(`/api/decks/${id}`)
+        api.getCached(`/api/decks/${id}`, {}, { freshMs: 60000, ttlMs: 300000 })
             .then(res => {
                 if (!mounted) return;
                 setDeck(res.data);
                 setTitle(res.data.title);
-                setCached(`deck_${id}`, res.data, 120000);
                 api.post(`/api/decks/${id}/visit`).catch(() => {});
             })
             .catch(() => {

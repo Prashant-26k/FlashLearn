@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../context/useToast';
 import api from '../utils/api';
-import { getCached, setCached, invalidateCache } from '../utils/cache';
+import { getCached, invalidateCache } from '../utils/cache';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -12,7 +12,7 @@ export default function Quiz() {
     const toast = useToast();
 
     const [step, setStep] = useState(1); // 1=setup, 2=quiz, 3=results
-    const [decks, setDecks] = useState(() => getCached('decks') || []);
+    const [decks, setDecks] = useState(() => getCached('/api/decks') || []);
     const [selectedDecks, setSelectedDecks] = useState(() => {
         const preselect = searchParams.get('deckId');
         return preselect ? [preselect] : [];
@@ -23,7 +23,7 @@ export default function Quiz() {
         timeEnabled: false,
         timeLimit: 30,
     });
-    const [loading, setLoading] = useState(() => !getCached('decks'));
+    const [loading, setLoading] = useState(() => !getCached('/api/decks'));
 
     // Quiz runtime state
     const [questions, setQuestions] = useState([]);
@@ -37,12 +37,11 @@ export default function Quiz() {
 
     useEffect(() => {
         let mounted = true;
-        api.get('/api/decks')
+        api.getCached('/api/decks')
             .then(res => {
                 if (!mounted) return;
                 const data = res.data || [];
                 setDecks(data);
-                setCached('decks', data, 60000);
             })
             .catch(() => { /* offline / backend not running */ })
             .finally(() => {

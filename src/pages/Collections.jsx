@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { useToast } from '../context/useToast';
 import api from '../utils/api';
-import { getCached, setCached, invalidateCache } from '../utils/cache';
+import { getCached, invalidateCache } from '../utils/cache';
 
 export default function Collections() {
-    const [collections, setCollections] = useState(() => getCached('collections') || []);
-    const [decks, setDecks] = useState(() => getCached('decks') || []);
-    const [loading, setLoading] = useState(() => !getCached('collections') || !getCached('decks'));
+    const [collections, setCollections] = useState(() => getCached('/api/collections') || []);
+    const [decks, setDecks] = useState(() => getCached('/api/decks') || []);
+    const [loading, setLoading] = useState(() => !getCached('/api/collections') || !getCached('/api/decks'));
     const [openCollectionId, setOpenCollectionId] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [newName, setNewName] = useState('');
@@ -22,19 +22,17 @@ export default function Collections() {
     useEffect(() => {
         let mounted = true;
         Promise.allSettled([
-            api.get('/api/collections'),
-            api.get('/api/decks'),
+            api.getCached('/api/collections'),
+            api.getCached('/api/decks'),
         ]).then(([colRes, deckRes]) => {
             if (!mounted) return;
             if (colRes.status === 'fulfilled') {
                 const colData = Array.isArray(colRes.value.data) ? colRes.value.data : (colRes.value.data?.items || []);
                 setCollections(colData);
-                setCached('collections', colData, 60000);
             }
             if (deckRes.status === 'fulfilled') {
                 const decksData = Array.isArray(deckRes.value.data) ? deckRes.value.data : (deckRes.value.data?.items || []);
                 setDecks(decksData);
-                setCached('decks', decksData, 60000);
             }
             setLoading(false);
         });

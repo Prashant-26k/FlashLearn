@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { getCached } from '../utils/cache';
 import { getDeckReadPercentage } from '../utils/deckProgress';
 import { getDeckStyle } from '../utils/deckStyle';
 
@@ -17,15 +18,31 @@ function formatTimeAgo(dateString) {
 }
 
 export default function History() {
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [history, setHistory] = useState(() => {
+        const cached = getCached('/api/decks');
+        if (!cached) return [];
+        const decks = Array.isArray(cached) ? cached : (cached?.items || []);
+        return decks
+            .map((deck) => ({
+                id: deck._id,
+                type: 'deck_created',
+                title: deck.title,
+                topic: deck.topic || 'General',
+                cardCount: deck.cards?.length || 0,
+                mastery: getDeckReadPercentage(deck),
+                createdAt: deck.createdAt,
+                timeAgo: formatTimeAgo(deck.createdAt),
+            }))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    });
+    const [loading, setLoading] = useState(() => !getCached('/api/decks'));
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
         let mounted = true;
-        api.get('/api/decks')
+        api.getCached('/api/decks')
             .then(({ data }) => {
                 if (!mounted) return;
                 const decks = Array.isArray(data) ? data : (data?.items || []);

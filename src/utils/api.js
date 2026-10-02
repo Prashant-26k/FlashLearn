@@ -1,4 +1,14 @@
 import axios from 'axios';
+import {
+    getCacheEntry,
+    setCached,
+    invalidatePattern,
+    clearCache,
+    dedupedRequest,
+    buildCacheKey,
+    DEFAULT_FRESH_MS,
+    DEFAULT_TTL_MS,
+} from './cache';
 
 export function getBackendBaseUrl() {
     const raw = (
@@ -35,9 +45,35 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response interceptor: normalization, 401 redirect, conflict detection, idempotent retry
+// Response interceptor: auto-invalidation, normalization, 401 redirect, conflict detection, idempotent retry
 api.interceptors.response.use(
     (response) => {
+        // Automatic cache invalidation on successful mutations
+        const method = response.config?.method?.toLowerCase();
+        if (['post', 'put', 'patch', 'delete'].includes(method)) {
+            const url = response.config?.url || '';
+            if (url.includes('/auth/logout')) {
+                clearCache();
+            } else if (url.includes('/decks') || url.includes('/generate')) {
+                invalidatePattern('/api/decks');
+                invalidatePattern('/api/collections');
+                invalidatePattern('/api/quiz/stats');
+                invalidatePattern('decks');
+                invalidatePattern('dashboard_decks');
+                invalidatePattern('quiz_stats');
+                invalidatePattern('deck_');
+            } else if (url.includes('/collections')) {
+                invalidatePattern('/api/collections');
+                invalidatePattern('/api/decks');
+                invalidatePattern('collections');
+                invalidatePattern('decks');
+            } else if (url.includes('/quiz')) {
+                invalidatePattern('/api/quiz');
+                invalidatePattern('quiz_stats');
+            } else if (url.includes('/preferences')) {
+                invalidatePattern('/api/preferences');
+            }
+        }
         return response;
     },
     async (error) => {
@@ -64,6 +100,7 @@ api.interceptors.response.use(
         // Section 4: 401 handling
         if (status === 401) {
             localStorage.removeItem('flashlearn_token');
+            clearCache();
             if (
                 !config?.skipAuthRedirect &&
                 typeof window !== 'undefined' &&
@@ -89,6 +126,47 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+/**
+ * Enhanced cached GET with in-flight deduplication and stale-while-revalidate.
+ * Returns immediately from memory (0ms) when data is cached and fresh.
+ */
+api.getCached = async function (url, config = {}, options = {}) {
+    const {
+        ttlMs = DEFAULT_TTL_MS,
+        freshMs = DEFAULT_FRESH_MS,
+        forceFresh = false,
+        onBackgroundUpdate,
+    } = options;
+
+    const cacheKey = buildCacheKey(url, config.params);
+    const entry = getCacheEntry(cacheKey);
+
+    // 1. Fresh cache hit: return immediately (0ms, no network call)
+    if (entry && !forceFresh && entry.isFresh) {
+        return { data: entry.data, status: 200, statusText: 'OK', headers: {}, config, cached: true };
+    }
+
+    // 2. Stale cache hit (within TTL): return stale data immediately (0ms) and revalidate in background
+    if (entry && !forceFresh && Date.now() <= entry.expiresAt) {
+        dedupedRequest(cacheKey, () => api.get(url, config))
+            .then((res) => {
+                const freshData = res.data;
+                setCached(cacheKey, freshData, ttlMs, freshMs);
+                if (onBackgroundUpdate && JSON.stringify(entry.data) !== JSON.stringify(freshData)) {
+                    onBackgroundUpdate(freshData);
+                }
+            })
+            .catch(() => {});
+
+        return { data: entry.data, status: 200, statusText: 'OK', headers: {}, config, cached: true, stale: true };
+    }
+
+    // 3. Cache miss / expired / forced refresh: fetch over network with in-flight deduplication
+    const res = await dedupedRequest(cacheKey, () => api.get(url, config));
+    setCached(cacheKey, res.data, ttlMs, freshMs);
+    return res;
+};
 
 export function getApiErrorMessage(error, defaultMsg = 'An unexpected error occurred') {
     if (!error) return defaultMsg;
